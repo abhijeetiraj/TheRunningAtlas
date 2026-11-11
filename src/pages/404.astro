@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import { href } from '../data/site.js';
+---
+<Base title="Off the map">
+  <header class="page-head wrap">
+    <p class="eyebrow">404</p>
+    <h1 class="display page-title">Off the map</h1>
+    <p class="lede">This page is not in the atlas, or not yet. Head back to the <a href={href('/')}>home page</a> to find your route.</p>
+  </header>
+</Base>

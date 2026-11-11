@@ -1,0 +1,114 @@
+---
+import Base from '../layouts/Base.astro';
+import Contours from '../components/Contours.astro';
+import Grades from '../components/Grades.astro';
+import { SECTIONS, PATHS, LABS, ROADMAP, href } from '../data/site.js';
+
+const ROUTE_MARKS = ['var(--blaze)', 'var(--forest)', 'var(--lake)', 'var(--ink)'];
+const pad = n => String(n).padStart(2, '0');
+// small contour icon per plate, nudged so each looks a little different
+const mini = n => ({ cx: 22 + ((n * 7) % 9) - 4, cy: 15 + ((n * 5) % 5) - 2 });
+---
+<Base>
+  <section class="hero-band">
+    <Contours />
+    <div class="wrap hero">
+      <div class="hero-copy">
+        <p class="eyebrow">A running guide · from first steps to deep science</p>
+        <h1 class="display">Every stride, <em>explained.</em></h1>
+        <p class="lede">From your first run to the science underneath it: how to start, train, race and stay healthy, with 3D you can turn, slow down and explore.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href={href('/how-running-works/stride/')}>Open the stride lab
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+          <a class="btn btn-text" href={href('/strength-mobility-drills/warm-up/')}>Try the warm-up studio</a>
+        </div>
+        <p class="hero-note">Every fact on the site shows how well it has been checked.</p>
+      </div>
+      <figure class="plate">
+        <div class="plate-head"><span>Plate 2 · The running stride</span><span class="dim">5:03 /km · 172 steps/min</span></div>
+        <div class="stage stage-hero" id="stage"></div>
+        <figcaption class="plate-cap">
+          <span>Live 3D. Drag to turn the runner.</span>
+          <span class="scale"><svg width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0.5" y="0.5" width="31.5" height="7" fill="currentColor" /><rect x="32" y="0.5" width="31.5" height="7" fill="none" stroke="currentColor" /></svg>1 m</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="wrap band">
+    <div class="band-head"><h2 class="h2">Choose your route</h2><p class="sub">Four ways in, each through the plates that matter most for you.</p></div>
+    <div class="routes">
+      {PATHS.map((p, i) => (
+        <div class="route" style={`--mark: ${ROUTE_MARKS[i]}`}>
+          <div class="route-k label">Route {String.fromCharCode(65 + i)} · Plates {p.go.join(', ')}</div>
+          <h3>{p.title}</h3>
+          <p>{p.line}</p>
+          <div class="route-go">
+            {p.go.map(n => <a class="chip" href={`#sec-${n}`}>{pad(n)} · {SECTIONS[n - 1].title}</a>)}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap band" id="atlas">
+    <div class="band-head"><h2 class="h2">The plates</h2><p class="sub">Eleven plates and about 90 topics, from first steps to deep science. Three pages are open in this preview; the rest are being mapped.</p></div>
+    <div class="plates">
+      {SECTIONS.map(s => {
+        const shown = s.topics.slice(0, 5), more = s.topics.slice(5);
+        const m = mini(s.n);
+        return (
+          <article class:list={['sec-plate', { 'is-live': s.live }]} id={`sec-${s.n}`}>
+            <div class="sp-top">
+              <span class="sp-no">PLATE {pad(s.n)}</span>
+              <svg class="sp-mini" width="44" height="30" viewBox="0 0 44 30" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1"><ellipse cx="22" cy="15" rx="20" ry="13" /><ellipse cx={(22 + m.cx) / 2} cy={(15 + m.cy) / 2} rx="13" ry="8" /><ellipse cx={m.cx} cy={m.cy} rx="6" ry="3.5" /></g></svg>
+            </div>
+            <div class="sp-body">
+              <h3><span class="vh">Plate {s.n}: </span>{s.title}</h3>
+              <p class="sp-who">For {s.who.toLowerCase()}</p>
+              <ul class="topics">{shown.map(t => <li>{t}</li>)}</ul>
+              {more.length > 0 && (
+                <details><summary>{more.length} more topic{more.length > 1 ? 's' : ''}</summary><ul class="topics">{more.map(t => <li>{t}</li>)}</ul></details>
+              )}
+            </div>
+            <div class="sp-foot">
+              {s.live
+                ? s.live.map(l => <a class="live-link" href={href(l.href)}>Open: {l.label}</a>)
+                : <span>{s.n === 7 ? 'Being mapped · clinician review first' : 'Being mapped'}</span>}
+            </div>
+          </article>
+        );
+      })}
+      <article class="finish">
+        <p class="label">Finish line</p>
+        <h3>How the atlas gets built</h3>
+        <ol>{ROADMAP.map((r, i) => <li><span class="mono">{i}</span>{r}</li>)}</ol>
+      </article>
+    </div>
+  </section>
+
+  <section class="wrap band">
+    <div class="band-head"><h2 class="h2">3D labs</h2><p class="sub">Ideas that are hard to see in words get a 3D lab. Every lab has a text version beside it.</p></div>
+    <ol class="labs">
+      {LABS.map(l => (
+        <li class:list={['lab', { 'is-live': l.href }]}>
+          {l.href
+            ? <a href={href(l.href)}><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Open</span></a>
+            : <div><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Planned</span></div>}
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="wrap band">
+    <div class="band-head"><h2 class="h2">How every fact is graded</h2><p class="sub">Each claim links to its source in the evidence ledger.</p></div>
+    <Grades />
+    <p class="fine">Pages on injuries and health will be reviewed by a clinician before they go live. Any single red-flag symptom means seek care now.</p>
+  </section>
+</Base>
+
+<script>
+  import { initHome } from '../scripts/home.js';
+  initHome();
+</script>

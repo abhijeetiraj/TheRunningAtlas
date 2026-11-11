@@ -1,0 +1,65 @@
+---
+import Base from '../../layouts/Base.astro';
+import Ledger from '../../components/Ledger.astro';
+import Article from '../../articles/warmup.mdx';
+import { claimsFor } from '../../data/claims.js';
+import { MOVES } from '../../data/warmup-moves.js';
+import { href } from '../../data/site.js';
+
+const claims = claimsFor('warmup');
+const first = MOVES[1];
+---
+<Base title="Warm-up studio" description="Nine warm-up moves for runners in 3D, with the muscles each one moves lit up, and what the evidence says about stretching.">
+  <header class="page-head wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><span>Plate 5 · Strength, mobility and drills</span><span aria-hidden="true">/</span><span aria-current="page">Warm-up studio</span></nav>
+    <h1 class="display page-title">Warm-up studio</h1>
+    <p class="lede">Five to eight minutes, all movement, no long holds. Pick a move to watch it in 3D, with the muscles it moves lit up.</p>
+    <p class="meta"><span>{MOVES.length} moves</span><span>3D</span><span>5 to 8 minutes</span></p>
+  </header>
+
+  <section class="lab-shell" id="lab" aria-label="Warm-up studio">
+    <div class="wrap studio-grid">
+      <ol class="move-list">
+        {MOVES.map((m, i) => (
+          <li><button data-move={i} aria-pressed={String(i === 1)}><span class="mv-no">{i + 1}</span><span class="mv-name">{m.name}</span><span class="mv-dose">{m.dose}</span></button></li>
+        ))}
+      </ol>
+      <div class="studio-main">
+        <div class="stage-wrap">
+          <div class="stage stage-wide" id="stage">
+            <div class="callouts" id="callouts"></div>
+            <button class="routine" id="routine"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor" /></svg><span>Play the routine</span></button>
+          </div>
+          <div class="legend" aria-hidden="true"><span class="label">Legend</span><span class="lg lg-stretch">Lengthening</span><span class="lg lg-work">Working</span><span class="lg lg-spring">Achilles tendon</span></div>
+        </div>
+        <div class="move-card" id="moveCard" aria-live="polite">
+          <div class="mc-head"><span class="mc-no">2/{MOVES.length}</span><h2 class="mc-name">{first.name}</h2><span class="mc-dose">{first.dose}</span></div>
+          <dl class="mc-grid"><div><dt>How</dt><dd>{first.how}</dd></div><div><dt>What it moves</dt><dd>{first.moves}</dd></div><div><dt>Why it helps</dt><dd>{first.why}</dd></div></dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap prose-grid">
+    <article class="prose">
+      <Article />
+    </article>
+    <aside class="tools">
+      <div class="care">
+        <h2 class="side-h">Stop and get it checked</h2>
+        <p>A warm-up should feel easy. If you get sharp pain, pain that makes you limp, or swelling, stop and get it checked.</p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="wrap band" id="evidence">
+    <div class="band-head"><h2 class="h2">Evidence ledger</h2><p class="sub">Every claim on this page, its source and how well it has been checked.</p></div>
+    <Ledger claims={claims} />
+    <p class="fine">General information, not medical advice.</p>
+  </section>
+</Base>
+
+<script>
+  import { initWarmup } from '../../scripts/warmup.js';
+  initWarmup();
+</script>

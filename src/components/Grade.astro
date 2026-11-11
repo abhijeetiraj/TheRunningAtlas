@@ -1,0 +1,5 @@
+---
+import { GRADES } from '../data/claims.js';
+const { grade } = Astro.props;
+---
+<span class={`grade grade-${grade}`}>{GRADES[grade].label}</span>

@@ -1,0 +1,9 @@
+---
+// The four evidence grades and what each one means.
+import { GRADES } from '../data/claims.js';
+---
+<dl class="grades">
+  {Object.entries(GRADES).map(([k, g]) => (
+    <div class={`gr gr-${k}`}><dt>{g.label}</dt><dd>{g.text}</dd></div>
+  ))}
+</dl>

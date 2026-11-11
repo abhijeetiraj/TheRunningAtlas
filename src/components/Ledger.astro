@@ -1,0 +1,20 @@
+---
+// The evidence ledger table for a list of claims. Each row is the target of the page's <Cite> links.
+import Grade from './Grade.astro';
+const { claims } = Astro.props;
+---
+<div class="table-wrap">
+  <table class="ledger">
+    <thead><tr><th scope="col">ID</th><th scope="col">Claim</th><th scope="col">Source</th><th scope="col">Grade</th></tr></thead>
+    <tbody>
+      {claims.map(c => (
+        <tr id={`claim-${c.id}`}>
+          <td class="mono">{c.id}</td>
+          <td>{c.claim}</td>
+          <td class="src">{c.src}</td>
+          <td><Grade grade={c.grade} /></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

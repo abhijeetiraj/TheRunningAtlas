@@ -1,0 +1,52 @@
+---
+// Page shell: head, header with the main navigation, footer.
+import '../styles/global.css';
+import Compass from '../components/Compass.astro';
+import { SITE, NAV, PREVIEW, href } from '../data/site.js';
+
+const { title, description = SITE.description } = Astro.props;
+const pageTitle = title ? `${title} · ${SITE.name}` : `${SITE.name}: ${SITE.tagline}`;
+const here = Astro.url.pathname.replace(/\/?$/, '/');
+const isCurrent = (p) => here === href(p).replace(/\/?$/, '/');
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={description} />
+  {PREVIEW && <meta name="robots" content="noindex, nofollow" />}
+  <meta name="theme-color" content="#f5f3ec" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#111915" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400..500&display=swap" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <div class="wrap top-in">
+      <a class="brand" href={href('/')} aria-label={`${SITE.name}, home`}>
+        <Compass />
+        <span class="brand-name">{SITE.name}</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        {NAV.map(n => <a href={href(n.href)} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>)}
+      </nav>
+      {PREVIEW && <span class="preview-chip">Preview<span class="pc-x"> edition</span></span>}
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <slot />
+  </main>
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <span>{SITE.footnote}</span>
+      <a href={href('/library/evidence/')}>Evidence ledger</a>
+      <span>General information, not medical advice.</span>
+    </div>
+  </footer>
+</body>
+</html>

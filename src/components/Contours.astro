@@ -1,0 +1,13 @@
+---
+// Decorative contour lines behind a band (like an atlas page).
+const { variant = 'top' } = Astro.props;
+---
+<svg class={`contours contours-${variant}`} aria-hidden="true" viewBox="0 0 1440 760" preserveAspectRatio="xMidYMid slice">
+  <g fill="none" stroke="currentColor" stroke-width="1.2">
+    <path d="M-40 120 C 180 60, 360 180, 560 110 S 900 40, 1120 120 S 1380 200, 1500 140" />
+    <path d="M-40 170 C 200 110, 360 230, 580 160 S 920 90, 1130 170 S 1380 250, 1500 190" />
+    <path d="M-40 225 C 210 170, 380 290, 600 215 S 930 150, 1140 225 S 1380 300, 1500 245" />
+    <path d="M-40 640 C 220 560, 420 700, 660 620 S 1020 540, 1240 610 S 1420 680, 1500 650" />
+    <path d="M-40 700 C 230 620, 430 760, 680 680 S 1040 600, 1250 670 S 1420 740, 1500 710" />
+  </g>
+</svg>
