@@ -1,22 +1,33 @@
-// One WebGL stage per page: lights, a contour floor, a scrolling trail, a post prop, the runner,
+// One WebGL stage per page: lights, red Martian ground with rocks, rover tracks that scroll, a post prop, the runner,
 // a ground-force arrow and a foot-path trace. Each page sets a driver that poses the runner every frame.
+// The canvas is transparent: the sky is the stage's CSS gradient, and fog of the same tone melts the ground into it.
+// Day and Dusk follow the page (data-sky on <html>, changed by the `jezero-sky` event from src/scripts/sky.js).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Figure, COL } from './rig.js';
-import { ATLAS } from './theme.js';
+import { MARS } from './theme.js';
 
 const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function canvasTexture(w, h, draw) {
+function canvasTexture(w, h, draw, rnd) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
-  draw(c.getContext('2d'));
+  draw(c.getContext('2d'), rnd);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
 
+// small seeded random, so the rocks and the ground look the same on every visit
+function seeded(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
+const isDusk = () => document.documentElement.dataset.sky === 'dusk';
+
 /** Returns null when WebGL is not available, so the page can show its text-only fallback. */
-export function createStage(theme = ATLAS) {
+export function createStage() {
+  let theme = isDusk() ? MARS.dusk : MARS.day;
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -36,8 +47,9 @@ export function createStage(theme = ATLAS) {
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = theme.envIntensity;
 
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
-  scene.add(new THREE.HemisphereLight(theme.hemi[0], theme.hemi[1], theme.hemi[2]));
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 6000);
+  const hemi = new THREE.HemisphereLight(theme.hemi[0], theme.hemi[1], theme.hemi[2]); scene.add(hemi);
+  scene.fog = new THREE.Fog(theme.fog[0], theme.fog[1], theme.fog[2]);
   const key = new THREE.DirectionalLight(theme.key[0], theme.key[1]);
   key.position.set(2.6, 5.2, 3.4); key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -47,14 +59,35 @@ export function createStage(theme = ATLAS) {
   const rim = new THREE.DirectionalLight(theme.rim[0], theme.rim[1]); rim.position.set(-3.5, 3.0, -4.0); scene.add(rim);
   const fill = new THREE.DirectionalLight(theme.fill[0], theme.fill[1]); fill.position.set(-4, 1.5, 3); scene.add(fill);
 
-  // floor: contour rings on a transparent disc, plus a shadow catcher
-  const floorTex = canvasTexture(1024, 1024, theme.floor); floorTex.anisotropy = 8;
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(4.2, 96), new THREE.MeshBasicMaterial({ map: floorTex, transparent: true, depthWrite: false }));
-  floor.rotation.x = -Math.PI / 2; scene.add(floor);
-  const catcher = new THREE.Mesh(new THREE.CircleGeometry(3.2, 64), new THREE.ShadowMaterial({ color: theme.shadow[0], opacity: theme.shadow[1], transparent: true, depthWrite: false }));
-  catcher.rotation.x = -Math.PI / 2; catcher.position.y = 0.001; catcher.receiveShadow = true; scene.add(catcher);
+  // ground: tiled regolith (2 m per tile) on a plane wide enough to reach the horizon, hazed by the fog
+  const rnd = seeded(0x4a45);
+  const groundTex = canvasTexture(512, 512, theme.ground, rnd);
+  groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping; groundTex.repeat.set(4000, 4000); groundTex.anisotropy = 8;
+  const groundMat = new THREE.MeshStandardMaterial({ map: groundTex, color: theme.groundColor, roughness: 1, metalness: 0 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(8000, 8000), groundMat);
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 
-  // trail: its texture scrolls like a treadmill belt; the ends fade out
+  // rocks: scattered around the runner, never on the tracks
+  const rockMat = new THREE.MeshStandardMaterial({ color: theme.rock, roughness: 0.95, flatShading: true });
+  const ROCKS = 170;
+  const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), rockMat, ROCKS);
+  {
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
+    let n = 0;
+    while (n < ROCKS) {
+      const r = 1.3 + Math.pow(rnd(), 1.6) * 30, a = rnd() * Math.PI * 2;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      const size = 0.025 + Math.pow(rnd(), 3) * (0.12 + r * 0.012);
+      if (Math.abs(x) < 0.85 + size) { rnd(); rnd(); continue; }
+      e.set(rnd() * 3, rnd() * 3, rnd() * 3); q.setFromEuler(e);
+      sc.set(size * (0.8 + rnd() * 0.6), size * (0.45 + rnd() * 0.35), size * (0.8 + rnd() * 0.6));
+      p.set(x, sc.y * 0.35, z);
+      rocks.setMatrixAt(n++, m.compose(p, q, sc));
+    }
+  }
+  rocks.castShadow = true; rocks.receiveShadow = true; scene.add(rocks);
+
+  // rover tracks: their texture scrolls like a treadmill belt; the ends fade out
   const laneTex = canvasTexture(256, 512, theme.trail);
   laneTex.wrapS = laneTex.wrapT = THREE.RepeatWrapping;
   const LANE_LEN = 9, TILE = 1.0;
@@ -65,7 +98,9 @@ export function createStage(theme = ATLAS) {
     x.fillStyle = gg; x.fillRect(0, 0, 4, 256);
   });
   laneAlpha.colorSpace = THREE.NoColorSpace;
-  const lane = new THREE.Mesh(new THREE.PlaneGeometry(1.22, LANE_LEN), new THREE.MeshBasicMaterial({ map: laneTex, alphaMap: laneAlpha, transparent: true, depthWrite: false }));
+  const laneMat = new THREE.MeshStandardMaterial({ map: laneTex, alphaMap: laneAlpha, color: theme.track, roughness: 1, transparent: true, depthWrite: false });
+  const lane = new THREE.Mesh(new THREE.PlaneGeometry(1.22, LANE_LEN), laneMat);
+  lane.receiveShadow = true;
   lane.rotation.x = -Math.PI / 2; lane.position.y = 0.002; scene.add(lane);
 
   // post for leg swings
@@ -129,7 +164,7 @@ export function createStage(theme = ATLAS) {
   }
 
   // sizing
-  let host = null, W = 0, H = 0;
+  let host = null, W = 0, H = 0, shift = 0;
   const ro = new ResizeObserver(() => resize());
   function resize() {
     if (!host) return;
@@ -138,6 +173,11 @@ export function createStage(theme = ATLAS) {
     W = w; H = h;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
+    applyShift();
+  }
+  // move the picture sideways (a share of the width), e.g. so the hero runner stands clear of the text panel
+  function applyShift() {
+    if (shift && W) camera.setViewOffset(W, H, -shift * W, 0, W, H); else camera.clearViewOffset();
     camera.updateProjectionMatrix();
   }
   function attach(el) {
@@ -169,6 +209,22 @@ export function createStage(theme = ATLAS) {
   }
   requestAnimationFrame(frame);
 
+  // Day and Dusk
+  function setSky(dusk) {
+    theme = dusk ? MARS.dusk : MARS.day;
+    renderer.toneMappingExposure = theme.exposure;
+    scene.environmentIntensity = theme.envIntensity;
+    hemi.color.set(theme.hemi[0]); hemi.groundColor.set(theme.hemi[1]); hemi.intensity = theme.hemi[2];
+    key.color.set(theme.key[0]); key.intensity = theme.key[1];
+    rim.color.set(theme.rim[0]); rim.intensity = theme.rim[1];
+    fill.color.set(theme.fill[0]); fill.intensity = theme.fill[1];
+    scene.fog.color.set(theme.fog[0]); scene.fog.near = theme.fog[1]; scene.fog.far = theme.fog[2];
+    groundMat.color.set(theme.groundColor); rockMat.color.set(theme.rock); laneMat.color.set(theme.track);
+    forceMat.color.set(theme.force); forceMat.emissive.set(theme.force); dot.material.color.set(theme.force);
+    pathMat.color.set(theme.path); pathMat.emissive.set(theme.path);
+  }
+  window.addEventListener('jezero-sky', e => setSky(!!(e.detail && e.detail.dusk)));
+
   function project(v3) {
     const p = v3.clone().project(camera);
     return { x: (p.x * 0.5 + 0.5) * W, y: (-p.y * 0.5 + 0.5) * H, behind: p.z > 1 };
@@ -177,7 +233,8 @@ export function createStage(theme = ATLAS) {
   return {
     THREE, renderer, scene, camera, controls, fig, lane, post, floor,
     setForce, hideForce: () => { arrowRoot.visible = false; }, setPath, showPath,
-    camTo, attach, setDriver: d => { driver = d; }, project,
+    camTo, attach, setDriver: d => { driver = d; }, project, setSky,
+    setShift(f) { shift = f; applyShift(); },
     scrollLane(dist) { laneTex.offset.y = -(dist / TILE) % 1; },
     size: () => ({ W, H }),
   };

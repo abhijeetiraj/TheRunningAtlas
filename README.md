@@ -24,10 +24,10 @@ npm run build    # static site in dist/
 npm run preview  # serve dist/
 ```
 
-To build for a sub-path, such as GitHub Pages at `/TheRunningAtlas/`, set `BASE_PATH` and `SITE_URL`:
+On Jezero Base the atlas is served at `/running/`. Build it for that sub-path with:
 
 ```sh
-BASE_PATH=/TheRunningAtlas/ SITE_URL=https://abhijeetiraj.github.io npm run build
+BASE_PATH=/running/ SITE_URL=https://abhijeeti.dev PUBLIC_HOME_URL= npm run build
 ```
 
 Always build links with `href('/path/')` from `src/data/site.js` so they follow the base path.
@@ -43,30 +43,26 @@ Always build links with `href('/path/')` from `src/data/site.js` so they follow 
 src/
   pages/         one file per URL
   layouts/       Base.astro: head, header, footer
-  components/    Cite, Ledger, Grades, Contours, Compass
+  components/    Cite, Ledger, Grades
   articles/      MDX prose for each page
   data/          site.js (sections, nav), claims.js (evidence ledger), warmup-moves.js
-  scripts/       client code for each page (home, stride, warmup) and shared ui.js
+  scripts/       client code for each page (home, stride, warmup), shared ui.js and sky.js (Day/Dusk)
+  lib/mars.js    the Sun at Jezero (from the base), for Day/Dusk
   lib/3d/        rig.js (the figure), gait.js (running model), motion.js (warm-up moves),
-                 stage.js (renderer, camera, floor, force arrow), theme.js (Trail atlas colours)
-  styles/        global.css: the Trail atlas look, light and dark
+                 stage.js (renderer, camera, floor, force arrow), theme.js (Mars colours for Day and Dusk)
+  styles/        global.css: the Jezero Base look, Day and Dusk
 ```
 
-## The look: Trail atlas
+## The look: Jezero Base
 
-Paper, ink and a trail blaze, like a printed atlas. Sections are numbered plates; contour lines and a map legend carry the theme.
+The atlas is part of Abhijeet I.'s portfolio, **Jezero Base** (https://abhijeeti.dev/), a 3D Mars base. It uses the base's look so moving between them feels like one site:
 
-| Token | Light | Use |
-| --- | --- | --- |
-| `--paper` | `#f5f3ec` | Page |
-| `--ink` | `#15241f` | Text |
-| `--blaze` | `#d9480f` | Accent, the trail |
-| `--forest` | `#1f4d3a` | Buttons, live links |
-| `--lake` | `#2b6cb0` | Ground force, model grade |
+- **Type:** Barlow Condensed (display, uppercase), Barlow (text) and IBM Plex Mono (labels and data), self-hosted from `@fontsource` packages, as on the base.
+- **Day and Dusk:** Mars sand and teal by Day, navy and cyan by Dusk. Until the reader picks, the sky follows the Sun at Jezero Crater, worked out with the base's Mars24 code (`src/lib/mars.js`). A pick is stored under the base's own key (`jezero-sky`), so it carries across the whole site. `Base.astro` sets it before the first paint; `src/scripts/sky.js` runs the switch.
+- **3D:** the stage is a window onto Jezero. Its sky is a CSS gradient; the runner jogs along rover tracks on red ground with scattered rocks, hazed into the sky by fog. Colours for Day and Dusk live in `src/lib/3d/theme.js`, and the stage recolours when the sky changes.
+- **Header:** the base's brand badge links back to the base, and "Olympus Gym" leads back to the gym building.
 
-Fonts are Fraunces (display), Source Serif 4 (text) and DM Mono (labels), loaded from Google Fonts. Before launch, consider self-hosting them so visitors' browsers do not contact Google.
-
-A dark "night map" theme follows the system setting. The 3D stage always stays on paper so the muscle colours read the same in both themes. 3D colours live in `src/lib/3d/theme.js`.
+`PUBLIC_HOME_URL` sets the base's address for those links (default `https://abhijeeti.dev`). Set it to an empty string when the atlas is built into the base itself, so links stay on whichever host serves the page.
 
 ## Evidence rules
 
@@ -109,5 +105,5 @@ At 3.3 m/s that gives 5:03 per km, 172 steps per minute, a 1.15 m step, 242 ms c
 ## Not decided yet
 
 - Name and domain
-- Hosting (GitHub Pages or Cloudflare Pages both work for a static site). There is no deploy workflow; the CI only builds.
+- Hosting: the plan is abhijeeti.dev/running/, inside Jezero Base. There is no deploy workflow here; the CI only builds.
 - Clinician and physiologist reviewers for health content

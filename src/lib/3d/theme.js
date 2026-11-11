@@ -1,48 +1,68 @@
-// The Trail atlas look for the 3D stage: a plaster runner on map paper, contour rings on the floor
-// and a dashed trail that scrolls under the feet like a treadmill belt.
-// Colours here match the CSS tokens in src/styles/global.css (--m-work, --force and so on).
+// The Jezero Base look for the 3D stage: a plaster runner on red Martian ground, with rover tracks that scroll under
+// the feet like a treadmill belt. The sky is the CSS gradient behind the transparent canvas (src/styles/global.css),
+// so the ground fades into it with fog of the same colour. Day and Dusk follow the page's sky switch.
+// Colours here match the CSS tokens (--m-work, --force and so on).
 
-export const ATLAS = {
-  figure: { skin: '#e6dccb', joint: '#cbbfac', shoe: '#e8590c', cap: '#1f4d3a' },
+const shared = {
+  figure: { skin: '#ece5da', joint: '#d2c7b8', shoe: '#22303f', cap: '#137872' },
   muscles: { work: '#d9822b', stretch: '#b8326b', spring: '#2f8f5b' },
-  force: '#2b6cb0',
-  path: '#1f4d3a',
-  prop: '#9c8f7a',
-  hemi: ['#fff6e8', '#d9cfbf', 1.1],
-  key: ['#fff1dc', 2.5],
-  rim: ['#ffe6c7', 0.9],
-  fill: ['#ffffff', 0.55],
-  envIntensity: 0.55,
-  exposure: 1.0,
-  shadow: ['#3b2f20', 0.26],
+  prop: '#a59e95',
 
-  // topographic contour rings, slightly irregular, fading towards the edge (1024 px canvas = 8.4 m disc)
-  floor(g) {
-    g.clearRect(0, 0, 1024, 1024);
-    for (let k = 1; k <= 9; k++) {
-      const r0 = 46 * k;
-      g.beginPath();
-      for (let i = 0; i <= 240; i++) {
-        const a = (i / 240) * Math.PI * 2;
-        const r = r0 * (1 + 0.07 * Math.sin(3 * a + k * 0.7) + 0.04 * Math.sin(5 * a - k * 1.3) + 0.025 * Math.sin(9 * a + k));
-        const x = 512 + r * Math.cos(a), y = 512 + r * Math.sin(a) * 0.96;
-        if (i) g.lineTo(x, y); else g.moveTo(x, y);
-      }
-      g.closePath();
-      g.strokeStyle = `rgba(52, 84, 58, ${0.42 * (1 - k / 10)})`;
-      g.lineWidth = k % 3 === 0 ? 3 : 1.6;
-      g.stroke();
+  // regolith: fine speckle and a few darker patches on a mid tone (tiled; the colour comes from the material)
+  ground(g, rnd) {
+    const S = 512;
+    g.fillStyle = '#bdbdbd'; g.fillRect(0, 0, S, S);
+    for (let i = 0; i < 26; i++) {
+      const x = rnd() * S, y = rnd() * S, r = 30 + rnd() * 90;
+      const gr = g.createRadialGradient(x, y, 0, x, y, r);
+      const a = 0.05 + rnd() * 0.08, dark = rnd() < 0.6;
+      gr.addColorStop(0, dark ? `rgba(0,0,0,${a})` : `rgba(255,255,255,${a})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]) { g.save(); g.translate(dx, dy); g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); g.restore(); }
+    }
+    for (let i = 0; i < 9000; i++) {
+      const v = rnd() < 0.5 ? 0 : 255;
+      g.fillStyle = `rgba(${v},${v},${v},${0.05 + rnd() * 0.12})`;
+      const s = rnd() < 0.92 ? 1 : 2;
+      g.fillRect(rnd() * S, rnd() * S, s, s);
     }
   },
 
-  // a trail drawn on a map: a faint band with dashed edges and a dashed blaze centre line (256 x 512 tile = 1.22 m x 1 m)
+  // rover tracks: two tread bands with chevrons and a lightly packed strip between them
+  // (256 x 512 tile = 1.22 m x 1 m; drawn in greys and tinted by the material)
   trail(g) {
     g.clearRect(0, 0, 256, 512);
-    g.fillStyle = 'rgba(21, 36, 31, 0.05)';
-    g.fillRect(16, 0, 224, 512);
-    g.fillStyle = 'rgba(21, 36, 31, 0.32)';
-    for (let y = 0; y < 512; y += 64) { g.fillRect(14, y, 4, 36); g.fillRect(238, y, 4, 36); }
-    g.fillStyle = 'rgba(217, 72, 15, 0.55)';
-    for (let y = 16; y < 512; y += 128) g.fillRect(124, y, 8, 72);
+    g.fillStyle = 'rgba(255,255,255,0.10)'; g.fillRect(48, 0, 160, 512);
+    for (const x0 of [10, 196]) {
+      g.fillStyle = 'rgba(0,0,0,0.30)'; g.fillRect(x0, 0, 50, 512);
+      g.strokeStyle = 'rgba(0,0,0,0.42)'; g.lineWidth = 5;
+      for (let y = -16; y < 528; y += 32) { g.beginPath(); g.moveTo(x0 + 4, y + 12); g.lineTo(x0 + 25, y); g.lineTo(x0 + 46, y + 12); g.stroke(); }
+    }
+  },
+};
+
+export const MARS = {
+  day: {
+    ...shared,
+    groundColor: '#c4794e', rock: '#7a4430', track: '#5e3019',
+    fog: ['#e2bc98', 7, 34],
+    force: '#137872', path: '#2b1b14',
+    hemi: ['#ffe9d2', '#a2603e', 1.05],
+    key: ['#fff0dc', 2.6],
+    rim: ['#ffd4ad', 0.8],
+    fill: ['#ffe8d6', 0.45],
+    envIntensity: 0.5,
+    exposure: 1.0,
+  },
+  dusk: {
+    ...shared,
+    groundColor: '#4b3a3a', rock: '#2a2026', track: '#3a2c2c',
+    fog: ['#151b28', 5, 26],
+    force: '#7fe3da', path: '#eaf0f7',
+    hemi: ['#6f8fc0', '#1c1414', 0.55],
+    key: ['#ffe2c2', 2.3],
+    rim: ['#7fe3da', 1.1],
+    fill: ['#8fb4ff', 0.35],
+    envIntensity: 0.32,
+    exposure: 1.05,
   },
 };

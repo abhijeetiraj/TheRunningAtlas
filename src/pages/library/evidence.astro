@@ -10,7 +10,7 @@ for (const c of CLAIMS) counts[c.grade] = (counts[c.grade] || 0) + 1;
 ---
 <Base title="Evidence ledger" description="Every claim on The Running Atlas, its source, and how well it has been checked.">
   <header class="page-head wrap">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><span>Plate 11 · Library</span><span aria-hidden="true">/</span><span aria-current="page">Evidence ledger</span></nav>
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><span>Section 11 · Library</span><span aria-hidden="true">/</span><span aria-current="page">Evidence ledger</span></nav>
     <h1 class="display page-title">Evidence ledger</h1>
     <p class="lede">Every claim on the site, where it comes from, and how well it has been checked. A claim is only marked Checked once the exact passage has been read in the full source and recorded with its limits.</p>
     <p class="meta"><span>{CLAIMS.length} claims</span><span>{counts.checked || 0} checked</span><span>{counts.abstract || 0} abstract only</span><span>{counts.unchecked || 0} not yet checked</span><span>{counts.model || 0} model</span></p>

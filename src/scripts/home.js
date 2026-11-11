@@ -1,4 +1,4 @@
-// Home page: a runner jogging on the trail in the hero plate.
+// Home page: a runner jogging along rover tracks at Jezero, in the hero window behind the copy panel.
 import { createStage } from '../lib/3d/stage.js';
 import * as G from '../lib/3d/gait.js';
 import { $, reduceMotion, noGL, flashOnHash } from './ui.js';
@@ -12,9 +12,16 @@ export function initHome() {
   if (!S) { noGL(el); return; }
   S.attach(el);
   const P = G.gaitParams(3.3), strike = 'heel';
-  S.camTo({ az: -1.0, el: 0.08, dist: 3.9, target: [0, 0.86, 0] }, true);
+  // On wide screens the copy panel sits on the left, so the picture moves right to keep the runner clear of it.
+  const wide = window.matchMedia('(min-width: 861px)');
+  const frame = () => {
+    S.setShift(wide.matches ? 0.2 : 0);
+    S.camTo(wide.matches ? { az: -1.05, el: 0.1, dist: 4.6, target: [0, 0.9, 0] } : { az: -1.0, el: 0.1, dist: 5.0, target: [0, 0.92, 0] }, true);
+  };
+  frame();
+  wide.addEventListener('change', frame);
   const still = reduceMotion();
-  S.controls.autoRotate = !still; S.controls.autoRotateSpeed = 0.5;
+  S.controls.autoRotate = !still; S.controls.autoRotateSpeed = 0.4;
   let phi = 0.42, dist = 0;
   S.setDriver(dt => {
     if (!still) { phi = (phi + dt / P.Tstride) % 1; dist += P.v * dt; }

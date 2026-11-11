@@ -86,7 +86,7 @@ export function initStride() {
     const ink2 = css('--ink-2'), line = css('--line'), force = css('--force'), tint = css('--float-tint');
     const d = P.duty;
     cx.fillStyle = tint; cx.fillRect(X(d), padT, X(0.5) - X(d), h - padT - padB); cx.fillRect(X(0.5 + d), padT, X(1) - X(0.5 + d), h - padT - padB);
-    cx.font = '11px "DM Mono", ui-monospace, monospace'; cx.fillStyle = ink2; cx.textAlign = 'right'; cx.textBaseline = 'middle';
+    cx.font = '500 11px "IBM Plex Mono", ui-monospace, monospace'; cx.fillStyle = ink2; cx.textAlign = 'right'; cx.textBaseline = 'middle';
     for (let k = 0; k <= 3; k++) { cx.fillText(k, padL - 8, Y(k)); cx.strokeStyle = line; cx.beginPath(); cx.moveTo(padL, Y(k)); cx.lineTo(w - padR, Y(k)); cx.stroke(); }
     cx.textAlign = 'center'; cx.textBaseline = 'alphabetic';
     for (const f of [0, 0.5, 1]) cx.fillText(`${f * 100}%`, Math.min(w - 18, Math.max(padL + 10, X(f))), h - 6);
@@ -111,7 +111,7 @@ export function initStride() {
   }
   new ResizeObserver(() => drawChart()).observe(cv);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => drawChart());
-  new MutationObserver(drawChart).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  new MutationObserver(drawChart).observe(document.documentElement, { attributes: true, attributeFilter: ['data-sky'] });
 
   // ---- tools
   const taps = [];

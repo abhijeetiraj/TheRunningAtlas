@@ -1,13 +1,24 @@
 ---
-// Page shell: head, header with the main navigation, footer.
+// Page shell: head, header with the atlas navigation and the Day/Dusk switch, footer.
+// The look follows Jezero Base (abhijeeti.dev): Barlow Condensed, Barlow and IBM Plex Mono on Mars sand by Day,
+// and navy by Dusk. Day/Dusk is set before the first paint, exactly as the base does it.
+import '@fontsource/barlow/400.css';
+import '@fontsource/barlow/400-italic.css';
+import '@fontsource/barlow/500.css';
+import '@fontsource/barlow/600.css';
+import '@fontsource/barlow-condensed/600.css';
+import '@fontsource/barlow-condensed/700.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
 import '../styles/global.css';
-import Compass from '../components/Compass.astro';
-import { SITE, NAV, PREVIEW, href } from '../data/site.js';
+import { SITE, BASE, JEZERO, NAV, PREVIEW, href } from '../data/site.js';
+import { marsSun } from '../lib/mars.js';
 
 const { title, description = SITE.description } = Astro.props;
-const pageTitle = title ? `${title} · ${SITE.name}` : `${SITE.name}: ${SITE.tagline}`;
+const pageTitle = title ? `${title} · ${SITE.name} · ${BASE.name}` : `${SITE.name}: ${SITE.tagline} · ${BASE.name}`;
 const here = Astro.url.pathname.replace(/\/?$/, '/');
 const isCurrent = (p) => here === href(p).replace(/\/?$/, '/');
+const skyScript = `(function(){var d=document.documentElement,s=null;try{s=localStorage.getItem('jezero-sky')}catch(e){}if(s!=='day'&&s!=='dusk')s=(${marsSun.toString()})(Date.now(),${JEZERO.lat},${JEZERO.lon})>0?'day':'dusk';d.setAttribute('data-sky',s)})();`;
 ---
 <!doctype html>
 <html lang="en">
@@ -17,25 +28,28 @@ const isCurrent = (p) => here === href(p).replace(/\/?$/, '/');
   <title>{pageTitle}</title>
   <meta name="description" content={description} />
   {PREVIEW && <meta name="robots" content="noindex, nofollow" />}
-  <meta name="theme-color" content="#f5f3ec" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#111915" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#fbf6f0" />
   <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400..500&display=swap" />
+  <script is:inline set:html={skyScript} />
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
   <header class="top">
     <div class="wrap top-in">
-      <a class="brand" href={href('/')} aria-label={`${SITE.name}, home`}>
-        <Compass />
-        <span class="brand-name">{SITE.name}</span>
+      <a class="brand" href={BASE.home} aria-label={`${BASE.owner}, ${BASE.name}: back to the base`}>
+        <span class="brand-name">{BASE.owner}</span>
+        <span class="brand-sub">{BASE.name} · Running Atlas</span>
       </a>
-      <nav class="nav" aria-label="Main">
+      <div class="sky seg" role="group" aria-label="Sky">
+        <button type="button" data-sky="now" aria-pressed="false" title="The sky as it is at Jezero right now: Day while the Sun is up there">Now</button>
+        <button type="button" data-sky="day" aria-pressed="false">Day</button>
+        <button type="button" data-sky="dusk" aria-pressed="false">Dusk</button>
+      </div>
+      <nav class="nav" aria-label="Running Atlas">
+        <a class="nav-gym" href={BASE.gym}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>{BASE.gymName}</a>
         {NAV.map(n => <a href={href(n.href)} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>)}
       </nav>
-      {PREVIEW && <span class="preview-chip">Preview<span class="pc-x"> edition</span></span>}
+      {PREVIEW && <span class="preview-chip">Preview</span>}
     </div>
   </header>
   <main id="main" tabindex="-1">
@@ -43,10 +57,15 @@ const isCurrent = (p) => here === href(p).replace(/\/?$/, '/');
   </main>
   <footer class="foot">
     <div class="wrap foot-in">
-      <span>{SITE.footnote}</span>
-      <a href={href('/library/evidence/')}>Evidence ledger</a>
-      <span>General information, not medical advice.</span>
+      <p>{SITE.name} is part of <a href={BASE.home}>{BASE.name}</a>, {BASE.owner}’s portfolio, next to <a href={BASE.gym}>{BASE.gymName}</a>.{PREVIEW && ' Preview build.'}</p>
+      <p><a href={href('/library/evidence/')}>Evidence ledger</a></p>
+      <p>General information, not medical advice.</p>
     </div>
   </footer>
 </body>
 </html>
+
+<script>
+  import { initSky } from '../scripts/sky.js';
+  initSky();
+</script>

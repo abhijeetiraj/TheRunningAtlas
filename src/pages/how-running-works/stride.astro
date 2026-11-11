@@ -18,7 +18,7 @@ const MOMENTS = [
 ---
 <Base title="The running stride" description="Slow a 3D runner down through one stride: landing, loading, midstance, push-off, float and swing, with forces and working muscles.">
   <header class="page-head wrap">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><span>Plate 2 · How running works</span><span aria-hidden="true">/</span><span aria-current="page">The running stride</span></nav>
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><span>Section 2 · How running works</span><span aria-hidden="true">/</span><span aria-current="page">The running stride</span></nav>
     <h1 class="display page-title">The running stride</h1>
     <p class="lede">Each stride, a leg lands, carries your weight, pushes off, then swings through while you float. Slow it down and watch every moment.</p>
     <p class="meta"><span>3D lab</span><span>About 10 min read</span><span>{claims.length} claims graded</span></p>
@@ -30,7 +30,7 @@ const MOMENTS = [
         <div class="stage-wrap">
           <div class="stage stage-wide" id="stage">
             <div class="hud hud-tl" aria-live="polite"><span class="hud-k">Right leg</span><span class="hud-big" id="moment">Landing</span><span class="hud-sub" id="momentSub">Right foot on the ground</span></div>
-            <div class="hud hud-tr" id="hudPace"></div>
+            <div class="hud hud-tr"><span class="tele" id="hudPace"></span></div>
             <div class="callouts" id="callouts"></div>
           </div>
           <div class="legend" aria-hidden="true"><span class="label">Legend</span><span class="lg lg-work">Working muscle</span><span class="lg lg-spring">Achilles tendon</span><span class="lg lg-force">Ground force</span><span class="lg lg-path">Foot path</span></div>

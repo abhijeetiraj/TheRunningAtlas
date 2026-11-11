@@ -11,6 +11,23 @@ export const SITE = {
   footnote: 'The Running Atlas (working title) · preview build',
 };
 
+/**
+ * The atlas lives on Jezero Base, Abhijeet I.'s portfolio, and is reached from Olympus Gym.
+ * PUBLIC_HOME_URL is the base's address. Leave it unset for abhijeeti.dev; set it to an empty string when the atlas
+ * is served from the base's own domain, so links stay on whatever host (or preview URL) is serving the page.
+ */
+const HOME_URL = (import.meta.env.PUBLIC_HOME_URL ?? 'https://abhijeeti.dev').replace(/\/$/, '');
+export const BASE = {
+  owner: 'Abhijeet I.',
+  name: 'Jezero Base',
+  home: HOME_URL + '/',
+  gym: HOME_URL + '/gym/',
+  gymName: 'Olympus Gym',
+};
+
+/** Jezero Crater, where the base stands: Day and Dusk follow the Sun there (see src/lib/mars.js). */
+export const JEZERO = { lat: 18.4447, lon: 77.4508 };
+
 export const SECTIONS = [
   { n: 1, slug: 'start-running', title: 'Start running', who: 'New runners', topics: ['Your first run, with run-walk', 'How often and how far', 'How easy is easy: the talk test', 'Shoes and kit that matter', 'Where to run: road, trail, treadmill', 'Side stitch and breathlessness', 'Soreness: what is normal', 'Staying motivated', 'When to see a doctor before starting'] },
   { n: 2, slug: 'how-running-works', title: 'How running works', who: 'Everyone, and the curious', topics: ['The running stride', 'Springs and tendons', 'Foot strike', 'Cadence and step length', 'Forces and impact', 'Arms, posture and trunk', 'Running economy', 'Uphill and downhill', 'Shoe science: foam, drop, plates'], live: [{ label: 'The running stride', href: '/how-running-works/stride/' }] },
