@@ -17,6 +17,9 @@ import { marsSun } from '../lib/mars.js';
 const { title, description = SITE.description } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.name} · ${BASE.name}` : `${SITE.name}: ${SITE.tagline} · ${BASE.name}`;
 const here = Astro.url.pathname.replace(/\/?$/, '/');
+// Canonical and social tags need the site's address (SITE_URL at build time).
+const canonical = Astro.site ? new URL(here, Astro.site).href : null;
+const ogImage = Astro.site ? new URL(href('/og.jpg'), Astro.site).href : null;
 const isCurrent = (p) => here === href(p).replace(/\/?$/, '/');
 const skyScript = `(function(){var d=document.documentElement,s=null;try{s=localStorage.getItem('jezero-sky')}catch(e){}if(s!=='day'&&s!=='dusk')s=(${marsSun.toString()})(Date.now(),${JEZERO.lat},${JEZERO.lon})>0?'day':'dusk';d.setAttribute('data-sky',s)})();`;
 ---
@@ -27,6 +30,17 @@ const skyScript = `(function(){var d=document.documentElement,s=null;try{s=local
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>{pageTitle}</title>
   <meta name="description" content={description} />
+  {canonical && <link rel="canonical" href={canonical} />}
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={SITE.name} />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={description} />
+  {canonical && <meta property="og:url" content={canonical} />}
+  {ogImage && <meta property="og:image" content={ogImage} />}
+  {ogImage && <meta property="og:image:width" content="1200" />}
+  {ogImage && <meta property="og:image:height" content="630" />}
+  {ogImage && <meta property="og:image:alt" content="A white 3D figure jogging across red Martian ground" />}
+  <meta name="twitter:card" content="summary_large_image" />
   {PREVIEW && <meta name="robots" content="noindex, nofollow" />}
   <meta name="theme-color" content="#fbf6f0" />
   <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />

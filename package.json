@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:jezero": "BASE_PATH=/running/ SITE_URL=https://abhijeeti.dev PUBLIC_HOME_URL= astro build",
+    "publish:jezero": "npm run build:jezero && node tools/publish-to-base.mjs",
     "preview": "astro preview"
   },
   "engines": {

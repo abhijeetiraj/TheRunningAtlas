@@ -3,7 +3,8 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://example.com',
+  // The live address, for canonical and social tags. Unset, pages leave those tags out.
+  site: process.env.SITE_URL || undefined,
   base: process.env.BASE_PATH || '/',
   trailingSlash: 'ignore',
   integrations: [mdx()],

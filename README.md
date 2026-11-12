@@ -24,11 +24,16 @@ npm run build    # static site in dist/
 npm run preview  # serve dist/
 ```
 
-On Jezero Base the atlas is served at `/running/`. Build it for that sub-path with:
+On Jezero Base the atlas is served at `/running/`, from the base repository's `public/running/`. Its door on the
+base is the Running Atlas building (`/atlas/`). To build the atlas for that sub-path and copy it in:
 
 ```sh
-BASE_PATH=/running/ SITE_URL=https://abhijeeti.dev PUBLIC_HOME_URL= npm run build
+npm run publish:jezero -- /path/to/mywebsite   # build:jezero, then copy dist/ to public/running/ (without 404.html)
 ```
+
+`npm run build:jezero` alone builds it (`BASE_PATH=/running/ SITE_URL=https://abhijeeti.dev PUBLIC_HOME_URL=`). The
+base's build then checks every link, the canonical and share tags on each page, and that the sections its building
+lists still exist. Commit the copy in the base repository; only its default branch deploys.
 
 Always build links with `href('/path/')` from `src/data/site.js` so they follow the base path.
 
@@ -105,5 +110,7 @@ At 3.3 m/s that gives 5:03 per km, 172 steps per minute, a 1.15 m step, 242 ms c
 ## Not decided yet
 
 - Name and domain
-- Hosting: the plan is abhijeeti.dev/running/, inside Jezero Base. There is no deploy workflow here; the CI only builds.
+- Launch: the atlas is ready to sit at abhijeeti.dev/running/ inside Jezero Base, but stays a preview (`PREVIEW` in
+  `src/data/site.js`: a Preview badge and `noindex`) until the name and reviewers are settled. There is no deploy
+  workflow here; the CI only builds.
 - Clinician and physiologist reviewers for health content
