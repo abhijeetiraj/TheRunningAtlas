@@ -1,0 +1,56 @@
+---
+// Maximal heart rate from two formulas, and heart rate reserve ranges (claims E14 to E17).
+---
+<div class="widget hrr" data-widget="hrr">
+  <h3 class="widget-h">Your heart-rate ranges</h3>
+  <p class="fine">Example values filled in. If you know your real maximum from a hard effort or a test, enter it: it beats any formula. Measure resting heart rate lying down, just after waking.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Age</span><input class="w-in" type="number" inputmode="numeric" min="12" max="95" value="40" data-in="age" /></label>
+    <label class="w-field"><span>Resting heart rate</span><input class="w-in" type="number" inputmode="numeric" min="30" max="110" value="60" data-in="rest" /></label>
+    <label class="w-field"><span>Measured maximum (optional)</span><input class="w-in w-wide" type="number" inputmode="numeric" min="120" max="230" placeholder="none" data-in="max" /></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>220 − age</dt><dd data-out="old">–</dd></div>
+    <div class="w-stat"><dt>208 − 0.7 × age</dt><dd data-out="tanaka">–</dd></div>
+    <div class="w-stat"><dt>Maximum used below</dt><dd data-out="used">–</dd></div>
+  </dl>
+  <div class="w-scroll hrr-table"><table class="w-table"><thead><tr><th scope="col">Range</th><th scope="col">Share of reserve</th><th scope="col">Heart rate</th></tr></thead><tbody data-out="rows"></tbody></table></div>
+  <div class="w-row">
+    <label class="w-field hrr-pick"><span>Any share of your reserve: <strong data-out="pct">65%</strong></span><input type="range" min="30" max="100" step="1" value="65" data-in="pick" /></label>
+    <span class="w-stat"><span class="w-k">Target</span> <strong class="num" data-out="target">–</strong> <span class="w-k">beats/min</span></span>
+  </div>
+  <p class="w-msg" data-out="msg"></p>
+</div>
+
+<style>
+  .hrr-table { max-height: none; }
+  .hrr-pick { flex: 1 1 260px; }
+  .hrr-pick input { width: 100%; }
+</style>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="hrr"]')) init(el);
+  function init(el) {
+    const q = k => el.querySelector(`[data-in="${k}"]`), out = k => el.querySelector(`[data-out="${k}"]`);
+    const BANDS = [['Light', 30, 39], ['Moderate', 40, 59], ['Vigorous', 60, 89], ['Near maximal', 90, 100]];
+    function run() {
+      const age = +q('age').value || 0, rest = +q('rest').value || 0, meas = +q('max').value || 0;
+      const old = 220 - age, tan = 208 - 0.7 * age;
+      out('old').innerHTML = age ? `${Math.round(old)}<small>bpm</small>` : '–';
+      out('tanaka').innerHTML = age ? `${Math.round(tan)}<small>bpm</small>` : '–';
+      const max = meas >= 120 ? meas : tan;
+      out('used').innerHTML = age || meas ? `${Math.round(max)}<small>${meas >= 120 ? 'measured' : 'formula'}</small>` : '–';
+      const msg = out('msg');
+      if (!rest || max - rest < 40) { out('rows').innerHTML = ''; out('target').textContent = '–'; msg.dataset.tone = 'big'; msg.textContent = 'Enter your age (or a measured maximum) and a resting heart rate.'; return; }
+      const res = max - rest, hr = p => Math.round(rest + res * p / 100);
+      out('rows').innerHTML = BANDS.map(([n, a, b]) => `<tr><td style="font-family:var(--f-body)">${n}</td><td>${a}–${b}%</td><td>${hr(a)}–${hr(b)}</td></tr>`).join('');
+      const p = +q('pick').value; out('pct').textContent = `${p}%`; out('target').textContent = hr(p);
+      msg.dataset.tone = '';
+      msg.textContent = meas >= 120
+        ? `Using your measured maximum of ${meas}. Your reserve is ${res} beats a minute.`
+        : `No measured maximum, so this uses 208 − 0.7 × age. Real maximums often sit 10 or more beats a minute either side of any formula, so treat these ranges as a starting point and check them against how the effort feels.`;
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>

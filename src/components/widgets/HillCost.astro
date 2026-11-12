@@ -1,0 +1,74 @@
+---
+// Hill effort: how much a slope changes the energy cost of running, and the pace on that slope that costs about the
+// same energy per minute as your flat pace. Uses the curve fitted by Minetti et al. 2002 (claim H17, a model).
+---
+<div class="widget hill" data-widget="hill">
+  <h3 class="widget-h">Same effort on a hill</h3>
+  <p class="fine">Pick a slope and your pace on the flat. Example values filled in. A model, not a measurement: the numbers ignore wind, footing and how tired you are.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Slope</span><input class="w-in" type="range" min="-30" max="30" step="1" value="6" data-in="grade" aria-label="Slope in percent" style="width: min(320px, 70vw)" /></label>
+    <span class="w-stat hill-g"><span class="w-k">Slope</span> <strong data-out="grade">+6%</strong></span>
+  </div>
+  <div class="w-row">
+    <label class="w-field"><span>Your pace on the flat</span><span class="w-time"><input class="w-in" type="number" inputmode="numeric" min="2" max="15" value="6" data-in="pm" aria-label="Pace minutes" />:<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="0" data-in="ps" aria-label="Pace seconds" /> <span class="w-k">per km</span></span></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Energy per km</dt><dd data-out="ratio">–</dd></div>
+    <div class="w-stat"><dt>Same effort on this slope</dt><dd data-out="pace">–</dd></div>
+    <div class="w-stat"><dt>Slowdown per km</dt><dd data-out="diff">–</dd></div>
+  </dl>
+  <canvas class="w-chart" data-out="chart" role="img" aria-label="Chart of the energy cost of running against slope, compared with the flat"></canvas>
+  <p class="w-msg" data-out="msg"></p>
+</div>
+
+<script>
+  import { fmtPace } from '../../scripts/run-math.js';
+  // energy cost of running, J per kg per m, for gradient i (a fraction): the curve as widely quoted from Minetti 2002
+  const cr = i => 155.4 * i ** 5 - 30.4 * i ** 4 - 43.3 * i ** 3 + 46.3 * i ** 2 + 19.5 * i + 3.6;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  for (const el of document.querySelectorAll('[data-widget="hill"]')) init(el);
+  function init(el) {
+    const q = k => el.querySelector(`[data-in="${k}"]`), out = k => el.querySelector(`[data-out="${k}"]`);
+    const cv = out('chart'), cx = cv.getContext('2d');
+    let g = 0.06;
+    function run() {
+      g = (+q('grade').value || 0) / 100;
+      out('grade').textContent = `${g > 0 ? '+' : ''}${Math.round(g * 100)}%`;
+      const r = cr(g) / cr(0);
+      const flat = (+q('pm').value || 0) * 60 + (+q('ps').value || 0);
+      out('ratio').innerHTML = `×${r.toFixed(2)}<small>vs flat</small>`;
+      const msg = out('msg');
+      if (flat < 150 || flat > 1200) { out('pace').textContent = '–'; out('diff').textContent = '–'; msg.textContent = 'Enter a flat pace between 2:30 and 20:00 per km.'; draw(); return; }
+      const hill = flat * r;              // same energy per minute: speed scales with 1 / cost per metre
+      out('pace').innerHTML = `${fmtPace(hill)}<small>/km</small>`;
+      const d = hill - flat;
+      out('diff').innerHTML = `${d >= 0 ? '+' : '−'}${fmtPace(Math.abs(d))}<small>/km</small>`;
+      msg.dataset.tone = '';
+      msg.textContent = g >= 0.02 ? `Uphill, each km costs about ${Math.round((r - 1) * 100)}% more energy, so slow down to keep the effort the same. On very steep climbs, walking briskly is a sensible choice.`
+        : g <= -0.02 ? (g < -0.15 ? 'On steep downhills the curve says you could go much faster for the same energy, but braking, footing and sore legs set the limit. Keep it controlled.' : 'Gentle downhills cost less energy per km, so the same effort is a little faster. Keep your steps short and quick.')
+        : 'Close to flat: the slope barely changes the cost.';
+      draw();
+    }
+    function draw() {
+      const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
+      if (!w) return;
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, w, h);
+      const padL = 34, padR = 10, padT = 12, padB = 24, lo = 0.3, hi = 3.4;
+      const X = i => padL + (i + 0.3) / 0.6 * (w - padL - padR), Y = r => padT + (1 - (r - lo) / (hi - lo)) * (h - padT - padB);
+      const ink2 = css('--ink-2'), line = css('--line'), acc = css('--accent'), ink = css('--ink');
+      cx.font = '500 11px "IBM Plex Mono", ui-monospace, monospace'; cx.fillStyle = ink2; cx.textAlign = 'right'; cx.textBaseline = 'middle';
+      for (const r of [0.5, 1, 2, 3]) { cx.fillText(`×${r}`, padL - 5, Y(r)); cx.strokeStyle = line; cx.beginPath(); cx.moveTo(padL, Y(r)); cx.lineTo(w - padR, Y(r)); cx.stroke(); }
+      cx.textAlign = 'center'; cx.textBaseline = 'alphabetic';
+      for (const i of [-0.3, -0.15, 0, 0.15, 0.3]) cx.fillText(`${i > 0 ? '+' : ''}${Math.round(i * 100)}%`, X(i), h - 7);
+      cx.beginPath();
+      for (let k = 0; k <= 120; k++) { const i = -0.3 + 0.6 * k / 120, y = Y(cr(i) / cr(0)); k ? cx.lineTo(X(i), y) : cx.moveTo(X(i), y); }
+      cx.strokeStyle = acc; cx.lineWidth = 2; cx.stroke(); cx.lineWidth = 1;
+      cx.fillStyle = ink; cx.beginPath(); cx.arc(X(g), Y(cr(g) / cr(0)), 5, 0, 2 * Math.PI); cx.fill();
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    new ResizeObserver(draw).observe(cv);
+    new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-sky'] });
+    run();
+  }
+</script>

@@ -167,15 +167,16 @@ export const PATHS = [
   { title: 'I want the science', line: 'Strides and springs, heart and lungs, and how fitness changes you.', go: [2, 3] },
 ];
 
+/** The 3D labs. A lab with `topic` lives on that topic's page and opens when the page is built. */
 export const LABS = [
   { name: 'Running stride', what: 'Slow a runner down, change speed and foot strike, see forces and working muscles.', href: '/how-running-works/stride/', section: 2 },
   { name: 'Warm-up studio', what: 'Nine warm-up moves you can watch from any angle, with muscles lit.', href: '/strength-mobility-drills/warm-up/', section: 5 },
-  { name: 'Spring lab', what: 'Watch the Achilles tendon and foot arch store and return energy.', section: 2 },
-  { name: 'Oxygen journey', what: 'Follow oxygen from the lungs to the heart to a working muscle.', section: 3 },
-  { name: 'Muscle fibres', what: 'Zoom into a calf muscle and compare slow and fast fibres.', section: 3 },
+  { name: 'Spring lab', what: 'Watch the leg work as a spring: change its stiffness and see contact time, bounce and force change.', topic: 'how-running-works/springs-and-tendons', section: 2 },
+  { name: 'Shoe cut-away', what: 'Slice a running shoe to see foam, drop and plates.', topic: 'how-running-works/shoe-science', section: 2 },
+  { name: 'Oxygen journey', what: 'Follow oxygen from the lungs to the heart to a working muscle, from rest to a hard run.', topic: 'the-engine/heart-lungs-oxygen', section: 3 },
+  { name: 'Muscle fibres', what: 'Look inside a calf muscle and watch slow and fast fibres switch on as effort rises.', topic: 'the-engine/muscle-fibres', section: 3 },
   { name: 'Strength library', what: 'Every strength exercise on the 3D runner, with the muscles it trains.', section: 5 },
   { name: 'Injury body map', what: 'Tap a sore area for common causes and when to get checked.', section: 7 },
-  { name: 'Shoe cut-away', what: 'Slice a running shoe to see foam, drop and plates.', section: 2 },
   { name: 'Course fly-over', what: 'Fly over a race course with its hills and a pacing plan.', section: 9 },
 ];
 

@@ -1,0 +1,48 @@
+---
+// Air and oxygen pressure by altitude (International Standard Atmosphere, claim E35), with the fall in VO2max
+// measured in trained athletes between 300 and 2,800 m (claim E36).
+---
+<div class="widget alt" data-widget="altitude">
+  <h3 class="widget-h">How thin is the air?</h3>
+  <p class="fine">Drag to an altitude. The air still holds about 21% oxygen at any height; what falls is the pressure pushing it into your blood.</p>
+  <div class="w-row">
+    <label class="w-field alt-pick"><span>Altitude: <strong data-out="h">2,000 m</strong></span><input type="range" min="0" max="5000" step="50" value="2000" data-in="h" /></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Air pressure</dt><dd data-out="p">–</dd></div>
+    <div class="w-stat"><dt>Oxygen pressure breathed in</dt><dd data-out="po2">–</dd></div>
+    <div class="w-stat"><dt>Typical VO2max change</dt><dd data-out="vo2">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg"></p>
+</div>
+
+<style>
+  .alt-pick { flex: 1 1 280px; }
+  .alt-pick input { width: 100%; }
+</style>
+
+<script>
+  const pAt = h => 101.325 * Math.pow(1 - 2.25577e-5 * h, 5.25588);      // kPa
+  const po2 = p => 0.2093 * (p - 6.27);                                    // kPa, air warmed and wetted in the airways
+  function init(el) {
+    const q = el.querySelector('[data-in="h"]'), out = n => el.querySelector(`[data-out="${n}"]`);
+    function run() {
+      const h = +q.value, p = pAt(h), sea = pAt(0);
+      out('h').textContent = `${h.toLocaleString('en-GB')} m`;
+      out('p').innerHTML = `${Math.round(100 * p / sea)}<small>% of sea level</small>`;
+      out('po2').innerHTML = `${po2(p).toFixed(1)}<small>kPa (${po2(sea).toFixed(1)} at sea level)</small>`;
+      const msg = out('msg');
+      if (h >= 300 && h <= 2800) {
+        const drop = 6.3 * (h - 300) / 1000;
+        out('vo2').innerHTML = `−${drop.toFixed(0)}<small>% vs 300 m</small>`;
+        msg.textContent = `In trained athletes tested from 300 to 2,800 m, VO2max fell by about 6.3% per 1,000 m, so about ${drop.toFixed(0)}% here. Easy runs will feel harder: slow down and go by effort.`;
+      } else {
+        out('vo2').innerHTML = '–';
+        msg.textContent = h < 300 ? 'Near sea level: no meaningful change.' : 'Above 2,800 m is beyond the range of the study used here. Fitness falls further, and altitude illness becomes more likely: see the warning signs below.';
+      }
+    }
+    q.addEventListener('input', run);
+    run();
+  }
+  for (const el of document.querySelectorAll('[data-widget="altitude"]')) init(el);
+</script>

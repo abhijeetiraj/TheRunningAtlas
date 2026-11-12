@@ -55,19 +55,22 @@ Always build links with `href('/path/')` from `src/data/site.js` so they follow 
 ```
 src/
   content/topics/  one MDX file per topic, by section (frontmatter: title, summary, description, inShort, read,
-                   kind, review, cleared, updated)
+                   kind, lab, review, cleared, updated)
   pages/         [section]/index.astro (section pages), [section]/[topic].astro (topic pages), and the hand-built pages
   layouts/       Base.astro: head, header, footer
   components/    Cite, Ledger, Grades, Box (care / try / model asides), TopicLink (links that appear once a page is
-                 live), widgets/ (calculators, planners and timers used in articles)
+                 live), widgets/ (calculators, planners and timers used in articles), labs/ (3D labs embedded in topic pages)
   articles/      MDX prose for each page
   data/          site.js (sections, nav), claims.js + claims/<section>.js (evidence ledger), runwalk.js
                  (the example run-walk plan), warmup-moves.js
   lib/atlas.js   the site map joined with the topic pages that exist
-  scripts/       client code for each page (home, stride, warmup), shared ui.js and sky.js (Day/Dusk)
+  scripts/       client code for each page (home, stride, warmup) and each embedded lab (labs/), shared ui.js and
+                 sky.js (Day/Dusk)
   lib/mars.js    the Sun at Jezero (from the base), for Day/Dusk
   lib/3d/        rig.js (the figure), gait.js (running model), motion.js (warm-up moves),
-                 stage.js (renderer, camera, floor, force arrow), theme.js (Mars colours for Day and Dusk)
+                 stage.js (renderer, camera, floor, force arrow), theme.js (Mars colours for Day and Dusk),
+                 mini.js (a small studio stage for the embedded labs)
+  lib/springmass.js  the spring-mass model behind the Spring lab
   styles/        global.css: the Jezero Base look, Day and Dusk
 ```
 
@@ -114,7 +117,9 @@ For health and safety content: say plainly when to stop and get checked, give nu
    unwritten or unreviewed pages stay plain text. Put asides in `<Box kind="care|try|model|note">`.
 4. Add its claims to `src/data/claims/<section>.js` and cite them. The page's ledger is added automatically.
 
-Hand-built pages (3D labs) go in `src/pages/<section>/<page>.astro` with `page: '/path/'` on their topic in `SECTIONS`; if they have claims, add them to `LEDGER_PAGES` in `claims.js`.
+Smaller 3D labs sit at the top of a topic page: put the component in `src/components/labs/`, add it to `LAB` in `src/pages/[section]/[topic].astro`, set `kind: lab` and `lab: <name>` in the page's frontmatter (the names are listed in `src/content.config.js`), and give its entry in `LABS` (`src/data/site.js`) a `topic`. Its claims go in the section's claims file like any other.
+
+Hand-built pages (big 3D labs with a page of their own) go in `src/pages/<section>/<page>.astro` with `page: '/path/'` on their topic in `SECTIONS`; if they have claims, add them to `LEDGER_PAGES` in `claims.js`.
 
 ## The running model
 

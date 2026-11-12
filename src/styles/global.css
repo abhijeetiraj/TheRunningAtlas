@@ -501,3 +501,38 @@ select.w-in { width: auto; padding-right: 28px; font-family: var(--f-body); font
 .w-scroll { max-height: 320px; overflow: auto; border-radius: 12px; border: 1px solid var(--line); background: var(--card); margin-top: 14px; }
 .w-scroll .w-table { margin: 0; }
 .w-scroll th { position: sticky; top: 0; background: var(--card); }
+
+/* ---------------------------------------------------------------- labs on topic pages (Spring, Oxygen, Muscle fibres, Shoe) */
+:root { --o2-rich: #d9473b; --o2-poor: #6b4fa0; --o2-dot: #1f9fb4; --f1: #b8324a; --f2a: #e0884a; --f2x: #efe0cc; --studio-top: #f3e6d8; --studio-bot: #e3cdb6; }
+@media (prefers-color-scheme: dark) { :root:not([data-sky="day"]) { --o2-rich: #ff6a5c; --o2-poor: #9b7fe0; --o2-dot: #5fe0f0; --studio-top: #101a2e; --studio-bot: #1b2a45; } }
+:root[data-sky="dusk"] { --o2-rich: #ff6a5c; --o2-poor: #9b7fe0; --o2-dot: #5fe0f0; --studio-top: #101a2e; --studio-bot: #1b2a45; }
+.lab-title { display: flex; align-items: baseline; gap: 12px; margin: 0 0 12px; }
+.lab-title .h2 { margin: 0; }
+.stage-studio { background: radial-gradient(120% 90% at 50% 30%, var(--studio-top), var(--studio-bot)); }
+.stage-studio::before { display: none; }
+.hud-wide { max-width: min(420px, calc(100% - 28px)); }
+.hud-wide .hud-sub { line-height: 1.4; }
+@media (max-width: 600px) { .hud-tl { left: 10px; top: 10px; padding: 8px 11px 9px; min-width: 0; } .hud-wide .hud-sub { display: none; } .legend { display: none; } }
+.lg-pogo::before { height: 10px; width: 10px; border-radius: 50%; background: #137872; }
+.lg-o2rich::before { background: var(--o2-rich); } .lg-o2poor::before { background: var(--o2-poor); }
+.lg-o2::before { width: 8px; height: 8px; border-radius: 50%; background: var(--o2-dot); }
+.lg-f1::before { background: var(--f1); } .lg-f2a::before { background: var(--f2a); } .lg-f2x::before { background: var(--f2x); outline: 1px solid var(--line-strong); }
+.lg-on::before { background: #fff; box-shadow: 0 0 6px 2px color-mix(in srgb, var(--f2a) 70%, transparent); }
+.lg-upper::before { background: color-mix(in srgb, #b54a17 45%, transparent); } .lg-insole::before { background: #137872; }
+.lg-foam::before { background: #f1ede6; outline: 1px solid var(--line-strong); } .lg-plate::before { background: #1d1f24; outline: 1px solid var(--line-strong); } .lg-rubber::before { background: #3a3f48; outline: 1px solid var(--line-strong); }
+.oxy-steps button { display: inline-flex; align-items: center; gap: 6px; }
+.oxy-n { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font: 600 11px/1 var(--f-mono); background: color-mix(in srgb, var(--ink) 12%, transparent); }
+.oxy-steps button[aria-pressed="true"] .oxy-n { background: color-mix(in srgb, var(--accent-ink) 30%, transparent); }
+.fick { margin-top: 16px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card-2); }
+.fick .label { margin: 0 0 6px; }
+.fick-eq { margin: 0; font-size: 15px; line-height: 1.6; }
+.fick-eq .num { font: 600 20px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.fibre-table { margin-top: 14px; }
+.fibre-table .w-table { margin: 0; font-size: 14px; }
+.fibre-table td { font-family: var(--f-body); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+.sw-f1 { background: var(--f1); } .sw-f2a { background: var(--f2a); } .sw-f2x { background: var(--f2x); outline: 1px solid var(--line-strong); }
+.lab-side .w-msg { margin-top: 14px !important; font-size: 15px; line-height: 1.45; }
+
+/* ---------------------------------------------------------------- small charts inside widgets */
+.w-chart { width: 100%; height: 200px; display: block; margin-top: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); }
