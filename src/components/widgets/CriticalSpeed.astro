@@ -1,0 +1,56 @@
+---
+// Critical speed from two all-out efforts: distance = CS × time + D′ (claim E12, a model).
+---
+<div class="widget cs" data-widget="critical-speed">
+  <h3 class="widget-h">Your critical speed</h3>
+  <p class="fine">Enter two recent all-out efforts on flat ground, each lasting roughly 2 to 15 minutes, such as a hard 1,600 m and a 5K race. Example values filled in.</p>
+  <div class="cs-grid">
+    {[1, 2].map(n => (
+      <fieldset class="pace-f">
+        <legend class="w-k">Effort {n}</legend>
+        <div class="w-row">
+          <label class="w-field"><span>Distance (m)</span><input class="w-in w-wide" type="number" inputmode="numeric" min="400" max="20000" step="10" value={n === 1 ? 1600 : 5000} data-in={`d${n}`} /></label>
+          <label class="w-field"><span>Time</span><span class="w-time"><input class="w-in" type="number" inputmode="numeric" min="0" max="59" value={n === 1 ? 6 : 22} data-in={`m${n}`} aria-label={`Effort ${n} minutes`} />:<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value={n === 1 ? 30 : 30} data-in={`s${n}`} aria-label={`Effort ${n} seconds`} /></span></label>
+        </div>
+      </fieldset>
+    ))}
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Critical speed</dt><dd data-out="cs">–</dd></div>
+    <div class="w-stat"><dt>As a pace</dt><dd data-out="pace">–</dd></div>
+    <div class="w-stat"><dt>D′, your reserve</dt><dd data-out="dp">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg"></p>
+</div>
+
+<style>
+  .cs-grid { display: grid; gap: 10px; margin-top: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
+  .pace-f { border: 1px solid var(--line); border-radius: 14px; background: var(--card); margin: 0; padding: 10px 14px 14px; }
+  .pace-f .w-row { margin-top: 6px; }
+</style>
+
+<script>
+  import { fmtPace, KM_PER_MI } from '../../scripts/run-math.js';
+  for (const el of document.querySelectorAll('[data-widget="critical-speed"]')) init(el);
+  function init(el) {
+    const q = k => +el.querySelector(`[data-in="${k}"]`).value || 0, out = k => el.querySelector(`[data-out="${k}"]`);
+    function run() {
+      let a = { d: q('d1'), t: q('m1') * 60 + q('s1') }, b = { d: q('d2'), t: q('m2') * 60 + q('s2') };
+      if (a.t > b.t) [a, b] = [b, a];
+      const msg = out('msg'); msg.dataset.tone = '';
+      const clear = text => { ['cs', 'pace', 'dp'].forEach(k => (out(k).textContent = '–')); msg.dataset.tone = 'big'; msg.textContent = text; };
+      if (!a.t || !b.t || !a.d || !b.d) return clear('Enter a distance and a time for both efforts.');
+      if (b.t - a.t < 60 || b.d <= a.d) return clear('The two efforts need different lengths: the longer one should cover more distance and last at least a minute longer.');
+      const cs = (b.d - a.d) / (b.t - a.t), dp = a.d - cs * a.t;
+      if (cs <= 0 || dp <= 0) return clear('These two results do not fit the model. Check the numbers, and use all-out efforts on flat ground.');
+      out('cs').innerHTML = `${(cs * 3.6).toFixed(1)}<small>km/h</small>`;
+      out('pace').innerHTML = `${fmtPace(1000 / cs)}<small>/km</small> <small>${fmtPace(1000 * KM_PER_MI / cs)} /mi</small>`;
+      out('dp').innerHTML = `${Math.round(dp)}<small>m</small>`;
+      const fast = cs * 1.05, empty = dp / (fast - cs);
+      const short = a.t < 120 || b.t > 1200;
+      msg.textContent = `Running 5% faster than critical speed (${fmtPace(1000 / fast)} /km), the model says your ${Math.round(dp)} m reserve lasts about ${Math.round(empty / 60)} minutes. In the model, running slower than critical speed doesn’t use it up.` + (short ? ' One of your efforts is outside about 2 to 20 minutes, where the model fits less well.' : '');
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>

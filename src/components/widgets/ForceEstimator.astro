@@ -1,0 +1,39 @@
+---
+// Peak ground force from step rate and contact time, if the force is a smooth half-sine (claims R2 and H9, a model).
+---
+<div class="widget force" data-widget="force">
+  <h3 class="widget-h">How hard the ground pushes back</h3>
+  <p class="fine">Example values filled in. Many running watches and foot pods show cadence and ground contact time; enter yours.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Cadence (steps/min)</span><input class="w-in" type="number" inputmode="numeric" min="120" max="230" value="170" data-in="cad" /></label>
+    <label class="w-field"><span>Ground contact (ms)</span><input class="w-in" type="number" inputmode="numeric" min="80" max="400" value="250" data-in="tc" /></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Time per step</dt><dd data-out="step">–</dd></div>
+    <div class="w-stat"><dt>Foot on the ground</dt><dd data-out="share">–</dd></div>
+    <div class="w-stat"><dt>Average over a step</dt><dd>1.0<small>× body weight</small></dd></div>
+    <div class="w-stat"><dt>Peak, smooth curve</dt><dd data-out="peak">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg"></p>
+</div>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="force"]')) init(el);
+  function init(el) {
+    const q = n => +el.querySelector(`[data-in="${n}"]`).value || 0, out = n => el.querySelector(`[data-out="${n}"]`);
+    function run() {
+      const cad = q('cad'), tc = q('tc') / 1000, msg = out('msg');
+      if (cad < 100 || tc <= 0) { msg.textContent = 'Enter a cadence and a contact time.'; return; }
+      const T = 60 / cad;
+      if (tc >= T) { msg.dataset.tone = 'big'; msg.textContent = 'Contact time is as long as a whole step: that is walking, not running. Check the numbers.'; out('peak').textContent = '–'; return; }
+      msg.dataset.tone = '';
+      out('step').innerHTML = `${Math.round(T * 1000)}<small>ms</small>`;
+      out('share').innerHTML = `${Math.round(100 * tc / T)}<small>% of the step</small>`;
+      const pk = Math.PI / 2 * T / tc;
+      out('peak').innerHTML = `${pk.toFixed(1)}<small>× body weight</small>`;
+      msg.textContent = `Your foot is down for ${Math.round(100 * tc / T)}% of each step, so the ground has to push about ${(T / tc).toFixed(1)} body weights on average while it is down, peaking near ${pk.toFixed(1)}. A heel landing adds a quick spike early in contact on top of this smooth curve.`;
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>

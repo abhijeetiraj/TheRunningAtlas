@@ -1,0 +1,65 @@
+---
+// The Muscle fibres lab: a bundle of calf muscle fibres, cut across. Raise the effort and watch slow fibres switch on
+// first, then fast ones (the size principle). Fibre mixes and switch-on points are an illustration.
+import Cite from '../Cite.astro';
+---
+<section class="lab-shell" id="lab" aria-label="Muscle fibres lab">
+  <div class="wrap lab-grid">
+    <div class="lab-main">
+      <div class="lab-title"><span class="label">3D lab</span><h2 class="h2">Muscle fibres</h2></div>
+      <div class="stage-wrap">
+        <div class="stage stage-wide stage-studio" id="fibreStage">
+          <div class="hud hud-tl" aria-live="polite"><span class="hud-k">Effort</span><span class="hud-big" data-out="effortName">Easy run</span><span class="hud-sub" data-out="effortSub">Slow fibres do the work</span></div>
+        </div>
+        <div class="legend" aria-hidden="true"><span class="label">Fibre types</span><span class="lg lg-f1">Type I, slow</span><span class="lg lg-f2a">Type IIa, fast</span><span class="lg lg-f2x">Type IIx, fastest</span><span class="lg lg-on">Glowing: switched on</span></div>
+      </div>
+      <div class="controls">
+        <div class="ctl-grid">
+          <div class="ctl">
+            <label for="fibreEffort" class="ctl-label">Effort <output data-out="effortPct" for="fibreEffort"></output></label>
+            <input type="range" id="fibreEffort" min="0" max="1" step="0.01" value="0.25" />
+            <div class="ticks" aria-hidden="true"><span>Standing</span><span>Sprint</span></div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" id="fibreMixLbl">Fibre mix</span>
+            <div class="seg" role="group" aria-labelledby="fibreMixLbl">
+              <button type="button" data-mix="even" aria-pressed="true">Even mix</button><button type="button" data-mix="slow" aria-pressed="false">Mostly slow</button><button type="button" data-mix="fast" aria-pressed="false">Mostly fast</button>
+            </div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" id="fibreViewLbl">View</span>
+            <div class="seg" role="group" aria-labelledby="fibreViewLbl">
+              <button type="button" data-view="cut" aria-pressed="true">Cut end</button><button type="button" data-view="side" aria-pressed="false">Along the bundle</button><button type="button" data-view="close" aria-pressed="false">Close up</button>
+            </div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" id="fibreJumpLbl">Jump to</span>
+            <div class="seg" role="group" aria-labelledby="fibreJumpLbl">
+              <button type="button" data-effort="0.25" aria-pressed="true">Easy run</button><button type="button" data-effort="0.6" aria-pressed="false">Hard run</button><button type="button" data-effort="0.95" aria-pressed="false">Sprint</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="lab-side">
+      <h3 class="side-h">Switched on now</h3>
+      <dl class="readouts" data-out="readouts"></dl>
+      <p class="fine">An illustration<Cite id="E24" />: the order follows the size principle<Cite id="E20" />, but the mixes and the efforts at which each kind switches on are chosen to show the idea. “Mostly slow” is close to the 79% slow fibres found in elite distance runners in one 1970s study<Cite id="E21" />.</p>
+      <div class="table-wrap fibre-table">
+        <table class="w-table">
+          <thead><tr><th scope="col">Type</th><th scope="col">Speed</th><th scope="col">Tires</th><th scope="col">Mitochondria</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sw sw-f1"></span>I</td><td>Slow</td><td>Very slowly</td><td>Many</td></tr>
+            <tr><td><span class="sw sw-f2a"></span>IIa</td><td>Fast</td><td>Fairly slowly</td><td>Fairly many</td></tr>
+            <tr><td><span class="sw sw-f2x"></span>IIx</td><td>Fastest</td><td>Quickly</td><td>Few</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script>
+  import { initFibreLab } from '../../scripts/labs/fibres.js';
+  initFibreLab(document.getElementById('lab'));
+</script>

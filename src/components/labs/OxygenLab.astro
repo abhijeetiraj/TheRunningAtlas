@@ -1,0 +1,61 @@
+---
+// The Oxygen journey: oxygen from the lungs, through the heart, to a working muscle and back, from rest to a hard run.
+// Numbers are a model of a fit adult (src/scripts/labs/oxygen.js), built on the Fick principle.
+import Cite from '../Cite.astro';
+const STEPS = [
+  { id: 'all', n: '', name: 'Whole loop' },
+  { id: 'lungs', n: '1', name: 'Lungs' },
+  { id: 'heart', n: '2', name: 'Heart' },
+  { id: 'arteries', n: '3', name: 'Arteries' },
+  { id: 'muscle', n: '4', name: 'Muscle' },
+  { id: 'veins', n: '5', name: 'Back to the heart' },
+];
+---
+<section class="lab-shell" id="lab" aria-label="Oxygen journey">
+  <div class="wrap lab-grid">
+    <div class="lab-main">
+      <div class="lab-title"><span class="label">3D lab</span><h2 class="h2">Oxygen journey</h2></div>
+      <div class="stage-wrap">
+        <div class="stage stage-wide stage-studio" id="oxyStage">
+          <div class="hud hud-tl hud-wide" aria-live="polite"><span class="hud-k" data-out="stepK">The whole loop</span><span class="hud-big" data-out="stepName">Oxygen journey</span><span class="hud-sub" data-out="stepText">Blood picks up oxygen in the lungs, the heart pumps it to the muscles, and it comes back for more.</span></div>
+        </div>
+        <div class="legend" aria-hidden="true"><span class="label">Legend</span><span class="lg lg-o2rich">Oxygen-rich blood</span><span class="lg lg-o2poor">Blood that has given up oxygen</span><span class="lg lg-o2">Oxygen moving into muscle</span></div>
+      </div>
+      <div class="controls">
+        <div class="ctl">
+          <span class="ctl-label" id="oxyStepLbl">Follow the oxygen</span>
+          <div class="seg oxy-steps" role="group" aria-labelledby="oxyStepLbl">
+            {STEPS.map((s, i) => <button type="button" data-step={s.id} aria-pressed={String(i === 0)}>{s.n && <span class="oxy-n">{s.n}</span>}{s.name}</button>)}
+          </div>
+        </div>
+        <div class="ctl-grid">
+          <div class="ctl">
+            <label for="oxyEffort" class="ctl-label">Effort <output data-out="effortLbl" for="oxyEffort"></output></label>
+            <input type="range" id="oxyEffort" min="0" max="1" step="0.01" value="0.35" />
+            <div class="ticks" aria-hidden="true"><span>Resting</span><span>All out</span></div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" id="oxyPresetLbl">Jump to</span>
+            <div class="seg" role="group" aria-labelledby="oxyPresetLbl">
+              <button type="button" data-effort="0" aria-pressed="false">Rest</button><button type="button" data-effort="0.35" aria-pressed="true">Easy run</button><button type="button" data-effort="0.7" aria-pressed="false">Hard run</button><button type="button" data-effort="1" aria-pressed="false">All out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="lab-side">
+      <h3 class="side-h">Oxygen delivery, in numbers</h3>
+      <dl class="readouts" data-out="readouts"></dl>
+      <p class="fine">A model of a fit adult of 70 kg, built on the Fick principle<Cite id="E3" />. Your own numbers will differ, often by a lot.</p>
+      <div class="fick" aria-live="polite">
+        <p class="label">The Fick principle</p>
+        <p class="fick-eq" data-out="fick"></p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script>
+  import { initOxygenLab } from '../../scripts/labs/oxygen.js';
+  initOxygenLab(document.getElementById('lab'));
+</script>

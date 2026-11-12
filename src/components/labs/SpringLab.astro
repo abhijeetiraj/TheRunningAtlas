@@ -1,0 +1,67 @@
+---
+// The Spring lab: the 3D runner beside a spring-mass model of the same step. Change speed and leg stiffness and
+// watch contact time, bounce and force change. Numbers come from src/lib/springmass.js (a model, not measurements).
+import Cite from '../Cite.astro';
+---
+<section class="lab-shell" id="lab" aria-label="Spring lab">
+  <div class="wrap lab-grid">
+    <div class="lab-main">
+      <div class="lab-title"><span class="label">3D lab</span><h2 class="h2">Spring lab</h2></div>
+      <div class="stage-wrap">
+        <div class="stage stage-wide" id="springStage">
+          <div class="hud hud-tl" aria-live="polite"><span class="hud-k">One step</span><span class="hud-big" data-out="phase">Foot down</span><span class="hud-sub" data-out="phaseSub">The spring is squashing</span></div>
+          <div class="hud hud-tr"><span class="tele" data-out="tele"></span></div>
+        </div>
+        <div class="legend" aria-hidden="true"><span class="label">Legend</span><span class="lg lg-spring">Spring, squashed</span><span class="lg lg-pogo">Body (centre of mass)</span><span class="lg lg-work">Calf working</span></div>
+      </div>
+      <div class="controls">
+        <div class="ctl-row">
+          <button class="btn-play" data-act="play" aria-label="Pause"></button>
+          <div class="seg" role="group" aria-label="Playback speed">
+            <button data-rate="1" aria-pressed="false">Real time</button><button data-rate="0.25" aria-pressed="false">¼</button><button data-rate="0.08" aria-pressed="true">1/12</button>
+          </div>
+        </div>
+        <div class="ctl-grid">
+          <div class="ctl">
+            <label for="springSpeed" class="ctl-label">Running speed <output data-out="speed" for="springSpeed"></output></label>
+            <input type="range" id="springSpeed" min="2.2" max="6" step="0.05" value="3.3" />
+            <div class="ticks" aria-hidden="true"><span>Easy jog</span><span>Fast</span></div>
+          </div>
+          <div class="ctl">
+            <label for="springStiff" class="ctl-label">Leg spring <output data-out="stiffLbl" for="springStiff"></output></label>
+            <input type="range" id="springStiff" min="-1" max="1" step="0.05" value="0" />
+            <div class="ticks" aria-hidden="true"><span>Softer, longer contact</span><span>Stiffer, shorter</span></div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" id="springShowLbl">Show</span>
+            <div class="toggles" role="group" aria-labelledby="springShowLbl">
+              <label class="tog"><input type="checkbox" data-opt="runner" checked /><span>Runner</span></label>
+              <label class="tog"><input type="checkbox" data-opt="pogo" checked /><span>Spring model</span></label>
+              <label class="tog"><input type="checkbox" data-opt="muscles" checked /><span>Achilles and calf</span></label>
+            </div>
+          </div>
+          <div class="ctl">
+            <label for="springMass" class="ctl-label">Body mass <output data-out="mass" for="springMass"></output></label>
+            <input type="range" id="springMass" min="40" max="130" step="1" value="70" />
+            <div class="ticks" aria-hidden="true"><span>40 kg</span><span>130 kg</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="lab-side">
+      <h3 class="side-h">This step, in numbers</h3>
+      <dl class="readouts" data-out="readouts"></dl>
+      <p class="fine">Model values from the spring-mass model<Cite id="H1" /><Cite id="H2" />, with a leg length of 0.95 m, not measurements. Cadence and contact time at each speed come from the stride lab’s model<Cite id="R1" />.</p>
+      <div class="chart-card">
+        <h3 class="side-h">Force and bounce through one step</h3>
+        <p class="fine">Top: the ground’s upward push, in body weights. Bottom: the body’s height, in cm, against its height at touchdown.</p>
+        <canvas data-out="chart" height="220" role="img" aria-label="Chart of ground force and body height through one step"></canvas>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script>
+  import { initSpringLab } from '../../scripts/labs/spring.js';
+  initSpringLab(document.getElementById('lab'));
+</script>

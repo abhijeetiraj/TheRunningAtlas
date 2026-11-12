@@ -4,6 +4,10 @@
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Ledger from '../../components/Ledger.astro';
+import SpringLab from '../../components/labs/SpringLab.astro';
+import ShoeLab from '../../components/labs/ShoeLab.astro';
+import OxygenLab from '../../components/labs/OxygenLab.astro';
+import FibreLab from '../../components/labs/FibreLab.astro';
 import { atlas, builtTopics } from '../../lib/atlas.js';
 import { claimsFor } from '../../data/claims.js';
 import { href } from '../../data/site.js';
@@ -27,6 +31,9 @@ const linked = s.topics.filter(x => x.href);
 const at = linked.indexOf(t);
 const prev = linked[at - 1], next = linked[at + 1];
 const KIND = { article: 'Article', tool: 'Tool', lab: '3D lab' };
+// a topic's 3D lab, shown full width between the summary and the article
+const LAB = { spring: SpringLab, shoe: ShoeLab, oxygen: OxygenLab, fibres: FibreLab };
+const Lab = d.lab ? LAB[d.lab] : null;
 const fmtDate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 ---
 <Base title={d.title} description={d.description}>
@@ -47,6 +54,8 @@ const fmtDate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'lon
       <ul>{d.inShort.map(x => <li>{x}</li>)}</ul>
     </section>
   </div>
+
+  {Lab && <Lab />}
 
   <div class="wrap prose-grid">
     <article class="prose">

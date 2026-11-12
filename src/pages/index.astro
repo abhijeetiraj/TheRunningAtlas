@@ -1,10 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import Grades from '../components/Grades.astro';
-import { PATHS, LABS, ROADMAP, BASE, href } from '../data/site.js';
+import { PATHS, ROADMAP, BASE, href } from '../data/site.js';
 import { atlas } from '../lib/atlas.js';
 
-const { sections, topics } = await atlas();
+const { sections, topics, labs } = await atlas();
 const openCount = topics.filter(t => t.state === 'open').length;
 
 const ROUTE_MARKS = ['var(--accent)', 'var(--m-work)', 'var(--g-model)', 'var(--m-stretch)'];
@@ -84,7 +84,7 @@ const pad = n => String(n).padStart(2, '0');
   <section class="wrap band">
     <div class="band-head"><h2 class="h2">3D labs</h2><p class="sub">Ideas that are hard to see in words get a 3D lab. Every lab has a text version beside it.</p></div>
     <ol class="labs" id="labs">
-      {LABS.map(l => (
+      {labs.map(l => (
         <li class:list={['lab', { 'is-live': l.href }]}>
           {l.href
             ? <a href={href(l.href)}><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Open</span></a>

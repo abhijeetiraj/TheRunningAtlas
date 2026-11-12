@@ -1,0 +1,55 @@
+---
+title: Forces and impact
+summary: Every step, the ground pushes back with about two to three times your body weight at its peak. Averaged over a whole step it is exactly one body weight. How that push is spread out matters more than its size.
+description: Ground reaction forces in running, explained simply. Why the average is one body weight, what sets the peak, the impact peak and loading rate, what the evidence says about forces and injury, and a calculator.
+inShort:
+  - Over a whole step, the ground pushes up with an average of one body weight. Squeezed into a short contact, the peak is two to three times that.
+  - Shorter contact means a higher peak. Faster runners push harder, not just faster.
+  - Injured runners don't clearly have bigger peak forces. Loading rate may matter for stress fractures.
+read: 7
+updated: 2026-11-12
+---
+import Cite from '../../../components/Cite.astro';
+import Box from '../../../components/Box.astro';
+import TopicLink from '../../../components/TopicLink.astro';
+import ForceEstimator from '../../../components/widgets/ForceEstimator.astro';
+
+## One body weight, on average
+
+Here is a fact from plain physics: over a whole step, the ground must push up on you with an average of exactly one body weight. If it pushed less, you would sink; if it pushed more, you would fly off<Cite id="R2" />.
+
+When you run, though, the ground only gets to push while your foot is down, which is often less than three-quarters of each step. So the same total push is squeezed into the contact time, and the peak has to be higher. If the force rises and falls as a smooth curve, the peak is about π/2 (1.57) times the step time divided by the contact time<Cite id="H9" />.
+
+<ForceEstimator />
+
+For a typical easy run, that comes to a peak of about two to three body weights.
+
+## What sets the peak
+
+- **Contact time.** The shorter the contact, the higher the peak. That's why fast running and sprinting produce bigger forces.
+- **Speed.** Faster top speeds come from pushing on the ground with more force, not from swinging the legs through the air faster<Cite id="H10" />.
+- **Bounce.** More vertical bounce means more up-and-down work to support.
+
+## The impact peak and loading rate
+
+Heel landings usually show a sharp spike in the first few hundredths of a second, called the impact peak; forefoot landings usually don't<Cite id="R3" />. How steeply force rises at the start is called the loading rate. You can see both in the force chart of the <TopicLink to="how-running-works/stride">stride lab</TopicLink>: switch between heel and forefoot.
+
+## Do big forces cause injuries?
+
+It seems obvious that bigger forces should mean more injuries, but the evidence doesn't line up neatly. A review of 18 studies found no difference in peak vertical forces between injured runners and controls. Loading rate was higher in runners with a history of stress fractures, mostly in studies that looked back after the injury<Cite id="H11" />.
+
+Part of the reason is that tissue adapts. Bones, tendons and muscles that are loaded regularly, and not too suddenly, get stronger. Many running injuries seem to come from load that rises faster than the body can adapt, which is why <TopicLink to="start-running/how-often-how-far">building up gradually</TopicLink> matters so much.
+
+## Spreading the load
+
+Things that change how force is spread, with some evidence behind them:
+
+- **A slightly higher cadence** at the same speed reduced loading at the knee and hip<Cite id="R8" />.
+- **Foot strike** moves load between knee and ankle rather than removing it<Cite id="R6" />. See <TopicLink to="how-running-works/foot-strike">foot strike</TopicLink>.
+- **Surface and shoes** change the feel of each step, but your legs adjust their stiffness to the surface, so the body's bounce stays similar<Cite id="S15" />.
+
+<Box kind="model" title="About the calculator">
+
+The calculator treats the force under one foot as a smooth half-sine. Real curves have extra bumps, such as the impact peak of a heel landing, so real peaks can be a little higher. The one-body-weight average is exact for steady running on the flat.
+
+</Box>

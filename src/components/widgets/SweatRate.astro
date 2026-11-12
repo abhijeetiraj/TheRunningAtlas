@@ -1,0 +1,40 @@
+---
+// Sweat rate from body weight before and after a run (claim E30). For planning drinks, not a safety check.
+---
+<div class="widget sweat" data-widget="sweat">
+  <h3 class="widget-h">Estimate your sweat rate</h3>
+  <p class="fine">Weigh yourself just before and just after a run of about an hour, in the same light clothes, after using the toilet before. Towel off before the second weigh. Example values filled in.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Weight before (kg)</span><input class="w-in" type="number" inputmode="decimal" step="0.1" min="30" max="200" value="70.0" data-in="pre" /></label>
+    <label class="w-field"><span>Weight after (kg)</span><input class="w-in" type="number" inputmode="decimal" step="0.1" min="30" max="200" value="69.1" data-in="post" /></label>
+    <label class="w-field"><span>Drank during (mL)</span><input class="w-in" type="number" inputmode="numeric" step="50" min="0" max="5000" value="300" data-in="drank" /></label>
+    <label class="w-field"><span>Run time (min)</span><input class="w-in" type="number" inputmode="numeric" min="10" max="600" value="60" data-in="min" /></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Sweat lost</dt><dd data-out="loss">–</dd></div>
+    <div class="w-stat"><dt>Sweat rate</dt><dd data-out="rate">–</dd></div>
+    <div class="w-stat"><dt>Body weight change</dt><dd data-out="pct">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg"></p>
+  <p class="fine">This helps you plan drinks for runs in similar weather. It is not a safety check: no number here can tell you that you are well. How you feel, and the warning signs on this page, matter more.</p>
+</div>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="sweat"]')) init(el);
+  function init(el) {
+    const q = n => +el.querySelector(`[data-in="${n}"]`).value || 0, out = n => el.querySelector(`[data-out="${n}"]`);
+    function run() {
+      const pre = q('pre'), post = q('post'), drank = q('drank') / 1000, min = q('min'), msg = out('msg');
+      if (pre < 30 || post < 30 || min < 10) { msg.textContent = 'Enter both weights and the run time.'; return; }
+      const change = post - pre, loss = pre - post + drank, rate = loss / (min / 60);
+      out('loss').innerHTML = `${loss.toFixed(2)}<small>L</small>`;
+      out('rate').innerHTML = `${rate.toFixed(2)}<small>L/hour</small>`;
+      out('pct').innerHTML = `${change > 0 ? '+' : ''}${(100 * change / pre).toFixed(1)}<small>%</small>`;
+      if (change > 0.05) { msg.dataset.tone = 'big'; msg.textContent = 'You weighed more after the run than before: you drank more than you sweated. Drinking well beyond your sweat losses can lower the sodium in your blood to dangerous levels, so drink less next time.'; return; }
+      msg.dataset.tone = '';
+      msg.textContent = `About ${rate.toFixed(1)} litres an hour in these conditions. Each kilogram lost is roughly a litre of sweat. Many runners aim to drink enough to stay within about 2% of their starting weight, without gaining weight.`;
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>

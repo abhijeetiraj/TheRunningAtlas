@@ -39,13 +39,21 @@ export async function atlas() {
       };
     });
     const open = topics.filter(t => t.state === 'open').length;
-    return { ...s, topics, open, labs: LABS.filter(l => l.section === s.n) };
+    return { ...s, topics, open };
   });
   for (const e of entries) {
     if (!known.has(e.id)) throw new Error(`src/content/topics/${e.id}.mdx is not listed in SECTIONS in src/data/site.js`);
   }
   const topics = sections.flatMap(s => s.topics);
-  cache = { sections, topics };
+  // a lab on a topic page opens when that page is built
+  const labs = LABS.map(l => {
+    if (!l.topic) return l;
+    const t = topics.find(x => x.id === l.topic);
+    if (!t) throw new Error(`Lab "${l.name}": no topic ${l.topic} in SECTIONS`);
+    return { ...l, href: t.href ? `${t.href}#lab` : null };
+  });
+  for (const s of sections) s.labs = labs.filter(l => l.section === s.n);
+  cache = { sections, topics, labs };
   return cache;
 }
 

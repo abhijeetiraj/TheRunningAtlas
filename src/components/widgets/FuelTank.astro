@@ -1,0 +1,53 @@
+---
+// Fuel stores as arithmetic: energy in stored fat and glycogen, and how far each could carry you at about
+// 1 kcal per kg per km (claims E28 and E29). An illustration of the two tanks, not a prediction.
+---
+<div class="widget fuel" data-widget="fuel-tank">
+  <h3 class="widget-h">Your two fuel tanks</h3>
+  <p class="fine">Example values filled in. Glycogen stores vary a lot with diet, training and body size; the 450 g here is only an example.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Body mass (kg)</span><input class="w-in" type="number" inputmode="decimal" min="35" max="200" value="70" data-in="mass" /></label>
+    <label class="w-field"><span>Body fat (%)</span><input class="w-in" type="number" inputmode="decimal" min="3" max="60" value="18" data-in="fat" /></label>
+    <label class="w-field"><span>Glycogen (g)</span><input class="w-in" type="number" inputmode="numeric" min="100" max="900" step="10" value="450" data-in="gly" /></label>
+  </div>
+  <div class="tank" aria-hidden="true">
+    <div class="tank-row"><span class="w-k">Fat</span><span class="tank-bar"><span class="tank-fill tank-fat" data-out="fatBar"></span></span></div>
+    <div class="tank-row"><span class="w-k">Glycogen</span><span class="tank-bar"><span class="tank-fill tank-gly" data-out="glyBar"></span></span></div>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Energy in stored fat</dt><dd data-out="fatE">–</dd></div>
+    <div class="w-stat"><dt>Energy in glycogen</dt><dd data-out="glyE">–</dd></div>
+    <div class="w-stat"><dt>Running cost</dt><dd data-out="cost">–</dd></div>
+    <div class="w-stat"><dt>Glycogen alone would last</dt><dd data-out="glyKm">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg"></p>
+</div>
+
+<style>
+  .tank { display: grid; gap: 8px; margin-top: 16px; }
+  .tank-row { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 10px; }
+  .tank-bar { height: 16px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
+  .tank-fill { display: block; height: 100%; border-radius: 8px; min-width: 3px; transition: width .3s; }
+  .tank-fat { background: var(--f2a); }
+  .tank-gly { background: var(--accent); }
+</style>
+
+<script>
+  const k = n => Math.round(n).toLocaleString('en-GB');
+  function init(el) {
+    const q = n => +el.querySelector(`[data-in="${n}"]`).value || 0, out = n => el.querySelector(`[data-out="${n}"]`);
+    function run() {
+      const mass = q('mass'), fat = q('fat'), gly = q('gly');
+      if (mass < 35 || fat < 3 || gly < 50) { out('msg').textContent = 'Enter a body mass, a body fat percentage and a glycogen amount.'; return; }
+      const fatE = mass * fat / 100 * 1000 * 9, glyE = gly * 4, cost = mass * 1;
+      out('fatE').innerHTML = `${k(fatE)}<small>kcal</small>`; out('glyE').innerHTML = `${k(glyE)}<small>kcal</small>`;
+      out('cost').innerHTML = `${k(cost)}<small>kcal/km</small>`;
+      out('glyKm').innerHTML = `${Math.round(glyE / cost)}<small>km</small>`;
+      out('fatBar').style.width = '100%'; out('glyBar').style.width = `${Math.max(0.6, 100 * glyE / fatE)}%`;
+      out('msg').textContent = `Your stored fat holds about ${Math.round(fatE / glyE)} times the energy of your glycogen, enough in theory for about ${k(fatE / cost)} km. In practice you always burn a mix: more fat when you run easily, more carbohydrate when you run hard. That is why glycogen, the small tank, matters in long races.`;
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+  for (const el of document.querySelectorAll('[data-widget="fuel-tank"]')) init(el);
+</script>

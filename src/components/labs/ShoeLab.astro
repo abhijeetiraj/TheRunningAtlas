@@ -1,0 +1,67 @@
+---
+// The Shoe cut-away: a generic running shoe you can slice down the middle. Change heel and forefoot stack, add a plate,
+// and press it to see the foam squash. An illustration, not any real shoe.
+import Cite from '../Cite.astro';
+---
+<section class="lab-shell" id="lab" aria-label="Shoe cut-away">
+  <div class="wrap lab-grid">
+    <div class="lab-main">
+      <div class="lab-title"><span class="label">3D lab</span><h2 class="h2">Shoe cut-away</h2></div>
+      <div class="stage-wrap">
+        <div class="stage stage-wide stage-studio" id="shoeStage">
+          <div class="hud hud-tl" aria-live="polite"><span class="hud-k">Shoe</span><span class="hud-big" data-out="shoeName">Everyday trainer</span><span class="hud-sub" data-out="shoeSub">10 mm drop, no plate</span></div>
+        </div>
+        <div class="legend" aria-hidden="true"><span class="label">Layers</span><span class="lg lg-upper">Upper</span><span class="lg lg-insole">Insole</span><span class="lg lg-foam">Midsole foam</span><span class="lg lg-plate">Plate</span><span class="lg lg-rubber">Outsole rubber</span></div>
+      </div>
+      <div class="controls">
+        <div class="ctl">
+          <span class="ctl-label" id="shoePresetLbl">Start from</span>
+          <div class="seg" role="group" aria-labelledby="shoePresetLbl">
+            <button type="button" data-preset="minimal" aria-pressed="false">Minimal</button><button type="button" data-preset="trainer" aria-pressed="true">Everyday trainer</button><button type="button" data-preset="lowdrop" aria-pressed="false">Low drop</button><button type="button" data-preset="racer" aria-pressed="false">Plated racer</button>
+          </div>
+        </div>
+        <div class="ctl-grid">
+          <div class="ctl">
+            <label for="shoeHeel" class="ctl-label">Heel stack <output data-out="heel" for="shoeHeel"></output></label>
+            <input type="range" id="shoeHeel" min="10" max="50" step="0.5" value="34" />
+          </div>
+          <div class="ctl">
+            <label for="shoeFore" class="ctl-label">Forefoot stack <output data-out="fore" for="shoeFore"></output></label>
+            <input type="range" id="shoeFore" min="8" max="45" step="0.5" value="24" />
+          </div>
+          <div class="ctl">
+            <label for="shoeCut" class="ctl-label">Slice <output data-out="cut" for="shoeCut"></output></label>
+            <input type="range" id="shoeCut" min="0" max="1" step="0.01" value="0.65" />
+            <div class="ticks" aria-hidden="true"><span>Whole shoe</span><span>Cut in half</span></div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" id="shoeOptLbl">Options</span>
+            <div class="toggles" role="group" aria-labelledby="shoeOptLbl">
+              <label class="tog"><input type="checkbox" data-opt="plate" /><span>Plate</span></label>
+              <label class="tog"><input type="checkbox" data-opt="soft" checked /><span>Soft foam</span></label>
+              <label class="tog"><input type="checkbox" data-opt="upper" checked /><span>Upper</span></label>
+              <label class="tog"><input type="checkbox" data-opt="press" checked /><span>Press it</span></label>
+            </div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" id="shoeViewLbl">View</span>
+            <div class="seg" role="group" aria-labelledby="shoeViewLbl">
+              <button type="button" data-view="cut" aria-pressed="true">The cut</button><button type="button" data-view="side" aria-pressed="false">Side</button><button type="button" data-view="heel" aria-pressed="false">From the heel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="lab-side">
+      <h3 class="side-h">This shoe, in numbers</h3>
+      <dl class="readouts" data-out="readouts"></dl>
+      <p class="w-msg" data-out="rule" aria-live="polite"></p>
+      <p class="fine">Stack is the height of the sole under the heel or the forefoot. Drop is heel stack minus forefoot stack. Road racing rules cap the sole at 40 mm<Cite id="H22" />. The shoe is a generic one built for the lab, and the foam squash is an illustration<Cite id="H23" />.</p>
+    </aside>
+  </div>
+</section>
+
+<script>
+  import { initShoeLab } from '../../scripts/labs/shoe.js';
+  initShoeLab(document.getElementById('lab'));
+</script>
