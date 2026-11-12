@@ -1,6 +1,14 @@
 // The evidence ledger: every factual claim on the site, its source and how well it has been checked.
 // Pages cite a claim with <Cite id="R5" />; each page shows its own claims in a ledger table,
 // and /library/evidence/ lists them all. The build fails if a claim is malformed or a cited id is unknown.
+//
+// Claims for the hand-built pages (the stride lab and the warm-up studio) are here. Claims for topic pages live in
+// src/data/claims/<section>.js, with `page` set to the topic's id, such as 'start-running/first-run'.
+// Each section has its own id letter: S start running, H how running works, E the engine, T training,
+// M strength and mobility, F fuel, I injuries, D different runners, C racing, P tools, L library.
+import { SECTIONS } from './site.js';
+import { CLAIMS as START } from './claims/start-running.js';
+import { CLAIMS as TOOLS } from './claims/tools.js';
 
 export const GRADES = {
   checked: { label: 'Checked', text: 'The exact supporting passage was read in the full source and recorded with its limits.' },
@@ -9,11 +17,20 @@ export const GRADES = {
   model: { label: 'Model', text: 'A simplified model or a physics rule, labelled as such. It shows how something works, not a measurement.' },
 };
 
-/** Pages that carry claims, in the order the full ledger lists them. */
+/** The hand-built pages that carry claims. Topic pages are keyed by their id, such as 'start-running/first-run'. */
 export const LEDGER_PAGES = {
   stride: { title: 'The running stride', href: '/how-running-works/stride/' },
   warmup: { title: 'Warm-up studio', href: '/strength-mobility-drills/warm-up/' },
 };
+
+/** Path of a ledger page key, or null if no such page is listed in the site map. */
+export function pageHref(key) {
+  if (LEDGER_PAGES[key]) return LEDGER_PAGES[key].href;
+  const [sec, topic, extra] = String(key).split('/');
+  if (extra !== undefined) return null;
+  const s = SECTIONS.find(x => x.slug === sec);
+  return s && s.topics.some(t => t.slug === topic && !t.page) ? `/${sec}/${topic}/` : null;
+}
 
 /*
  * A claim: { id, page, claim, src, grade }.
@@ -21,7 +38,7 @@ export const LEDGER_PAGES = {
  * the exact supporting text, where it sits in the source (page, section or table), its limits, and the date it was read.
  * Agreement between search summaries does not count as checked.
  */
-export const CLAIMS = [
+const CORE = [
   { id: 'R1', page: 'stride', grade: 'model', claim: 'Cadence, step length, contact time and bounce in the lab follow a simple model of a typical recreational runner.', src: 'Model tuned to typical published ranges' },
   { id: 'R2', page: 'stride', grade: 'model', claim: 'Over a whole step the ground pushes up with an average of one body weight, so a shorter contact means a higher peak.', src: "Newton's second law (physics)" },
   { id: 'R3', page: 'stride', grade: 'unchecked', claim: 'Heel landings usually show a sharp early impact peak; forefoot landings usually do not.', src: 'Cavanagh and Lafortune 1980, J Biomech 13:397-406; Lieberman et al. 2010, Nature 463:531-535' },
@@ -39,6 +56,9 @@ export const CLAIMS = [
   { id: 'W5', page: 'warmup', grade: 'abstract', claim: 'Pooling 25 trials (26,610 people), stretching programmes showed no clear protective effect; strength training programmes were linked with the biggest drop in injuries.', src: 'Lauersen et al. 2014, Br J Sports Med 48:871-877' },
 ];
 
+export const CLAIMS = [...CORE, ...START, ...TOOLS];
+
+
 // ---- build-time checks
 (function validate() {
   const seen = new Set();
@@ -48,7 +68,7 @@ export const CLAIMS = [
     if (seen.has(c.id)) throw new Error(`${where}: duplicate id`);
     seen.add(c.id);
     if (!GRADES[c.grade]) throw new Error(`${where}: unknown grade "${c.grade}"`);
-    if (!LEDGER_PAGES[c.page]) throw new Error(`${where}: unknown page "${c.page}"`);
+    if (!pageHref(c.page)) throw new Error(`${where}: unknown page "${c.page}"`);
     if (!c.claim || !c.src) throw new Error(`${where}: needs claim and src`);
     if (c.grade === 'checked') {
       const p = c.passage || {};
@@ -64,3 +84,8 @@ export function claimById(id) {
 }
 
 export const claimsFor = page => CLAIMS.filter(c => c.page === page);
+
+/** The path of the page a claim belongs to (its ledger table is there). */
+export function claimPage(id) {
+  return pageHref(claimById(id).page);
+}

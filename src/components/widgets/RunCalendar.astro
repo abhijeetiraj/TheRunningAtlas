@@ -1,0 +1,80 @@
+---
+// Puts the nine-week run-walk plan in your calendar: pick your days and a time, download a calendar file.
+// Everything happens in the browser; nothing is sent anywhere.
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DEFAULT = new Set(['Tue', 'Thu', 'Sat']);
+---
+<div class="widget" data-widget="calendar">
+  <h3 class="widget-h">Put your runs in your calendar</h3>
+  <p class="fine">Pick three days with a rest day between them, and a time. You get a calendar file for the nine-week run-walk plan, which your phone's calendar can open. It is made on your device and not sent anywhere.</p>
+  <div class="toggles cal-days" role="group" aria-label="Days">
+    {DAYS.map((d, i) => <label class="tog"><input type="checkbox" value={i} checked={DEFAULT.has(d)} data-day /><span>{d}</span></label>)}
+  </div>
+  <div class="w-row">
+    <label class="w-field"><span>Time</span><input class="w-in w-wide" type="time" value="07:00" data-in="time" /></label>
+    <label class="w-field"><span>First week starts</span><input class="w-in w-wide cal-date" type="date" data-in="date" /></label>
+  </div>
+  <p class="w-msg" data-out="msg" aria-live="polite"></p>
+  <div class="w-btns"><button type="button" class="w-btn" data-act="ics">Download calendar file</button></div>
+</div>
+
+<style>
+  .cal-days { margin-top: 14px; }
+  .cal-date { width: 170px; }
+</style>
+
+<script>
+  import { WEEKS, describe, totalMinutes } from '../../data/runwalk.js';
+
+  for (const el of document.querySelectorAll('[data-widget="calendar"]')) {
+    const date = el.querySelector('[data-in="date"]'), time = el.querySelector('[data-in="time"]');
+    const msg = el.querySelector('[data-out="msg"]');
+    // default start: next Monday
+    const d0 = new Date(); d0.setDate(d0.getDate() + ((8 - d0.getDay()) % 7 || 7));
+    date.value = `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, '0')}-${String(d0.getDate()).padStart(2, '0')}`;
+    const picked = () => [...el.querySelectorAll('[data-day]')].filter(x => x.checked).map(x => +x.value);
+    const check = () => {
+      const p = picked();
+      const back2back = p.some(d => p.includes((d + 1) % 7));
+      if (!p.length) { msg.dataset.tone = 'big'; msg.textContent = 'Pick at least one day.'; }
+      else if (p.length > 3) { msg.dataset.tone = 'big'; msg.textContent = `That is ${p.length} sessions a week. The plan is built for three; more leaves less time to recover.`; }
+      else if (back2back) { msg.dataset.tone = 'big'; msg.textContent = 'Two of your days are back to back. A rest day between sessions gives your legs time to recover.'; }
+      else { msg.dataset.tone = 'ok'; msg.textContent = `${p.length} session${p.length > 1 ? 's' : ''} a week for nine weeks: ${p.length * 9} in all.`; }
+    };
+    el.addEventListener('change', check); check();
+
+    const pad = n => String(n).padStart(2, '0');
+    const stamp = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+    const esc = s => s.replace(/[\\,;]/g, m => '\\' + m).replace(/\n/g, '\\n');
+    el.querySelector('[data-act="ics"]').addEventListener('click', () => {
+      const days = picked().sort((a, b) => a - b);
+      if (!days.length) return;
+      const [y, m, d] = date.value.split('-').map(Number);
+      const [hh, mm] = (time.value || '07:00').split(':').map(Number);
+      const first = new Date(y, m - 1, d);
+      // each plan week is the seven days from the start date; picked weekdays (0 = Monday) fall inside it in order
+      const startDay = (first.getDay() + 6) % 7;
+      const offsets = days.map(day => (day - startDay + 7) % 7).sort((a, b) => a - b);
+      const now = new Date();
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//The Running Atlas//Run-walk plan//EN', 'CALSCALE:GREGORIAN'];
+      WEEKS.forEach((w, wi) => {
+        offsets.forEach((off, k) => {
+          const s = new Date(first); s.setDate(first.getDate() + wi * 7 + off); s.setHours(hh, mm, 0, 0);
+          const e = new Date(s.getTime() + totalMinutes(w) * 60000);
+          lines.push('BEGIN:VEVENT',
+            `UID:${stamp(s)}-${wi}-${k}-${Math.random().toString(36).slice(2, 10)}@running-atlas`,
+            `DTSTAMP:${stamp(now)}`, `DTSTART:${stamp(s)}`, `DTEND:${stamp(e)}`,
+            `SUMMARY:${esc(`Run-walk, week ${w.n} (session ${k + 1} of ${offsets.length})`)}`,
+            `DESCRIPTION:${esc(describe(w) + ' Repeat the week if it felt hard. General information, not medical advice.')}`,
+            'END:VEVENT');
+        });
+      });
+      lines.push('END:VCALENDAR');
+      const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'text/calendar' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'run-walk-plan.ics';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    });
+  }
+</script>

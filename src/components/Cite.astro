@@ -1,7 +1,12 @@
 ---
-// An inline citation: a small link to the claim's row in the page's evidence ledger.
-import { claimById, GRADES } from '../data/claims.js';
+// An inline citation: a small link to the claim's row in the page's evidence ledger, or in the full ledger when the
+// claim belongs to another page.
+import { claimById, claimPage, GRADES } from '../data/claims.js';
+import { href } from '../data/site.js';
 const { id } = Astro.props;
 const c = claimById(id);
+const slash = p => p.replace(/\/?$/, '/');
+const local = slash(Astro.url.pathname) === slash(href(claimPage(id)));
+const to = local ? `#claim-${id}` : `${href('/library/evidence/')}#claim-${id}`;
 ---
-<a class={`cite cite-${c.grade}`} href={`#claim-${id}`} title={`${c.src} · ${GRADES[c.grade].label}`} aria-label={`Source ${id}, ${GRADES[c.grade].label}`}>{id}</a>
+<a class={`cite cite-${c.grade}`} href={to} title={`${c.src} · ${GRADES[c.grade].label}`} aria-label={`Source ${id}, ${GRADES[c.grade].label}`}>{id}</a>

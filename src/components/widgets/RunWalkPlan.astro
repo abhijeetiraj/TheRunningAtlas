@@ -1,0 +1,174 @@
+---
+// The example nine-week run-walk plan: pick a week to see its session, then run it with the interval timer.
+// The timer beeps (and vibrates, where the phone allows) at each change, and can say "Run" and "Walk" out loud.
+import { WEEKS, segments, describe, totalMinutes, runMinutes } from '../../data/runwalk.js';
+const w0 = WEEKS[0];
+---
+<div class="widget rw" data-widget="runwalk">
+  <h3 class="widget-h">Example run-walk plan</h3>
+  <p class="fine">Three sessions a week, with a rest day between them. Repeat any week until it feels comfortable.</p>
+  <div class="seg rw-weeks" role="group" aria-label="Week">
+    {WEEKS.map(w => <button type="button" data-week={w.n} aria-pressed={String(w.n === 1)}>Week {w.n}</button>)}
+  </div>
+  <div class="rw-bar" aria-hidden="true">
+    {segments(w0).map(([k, m]) => <span class={`rw-s rw-${k}`} style={`flex-grow:${m}`}></span>)}
+  </div>
+  <div class="rw-key" aria-hidden="true"><span class="rw-k rw-k-run">Run</span><span class="rw-k rw-k-walk">Walk</span></div>
+  <p class="rw-desc" aria-live="polite">{describe(w0)} <span class="rw-tot">{totalMinutes(w0)} minutes in all, {runMinutes(w0)} of them running.</span></p>
+
+  <div class="rw-timer" aria-label="Interval timer">
+    <div class="rw-now">
+      <span class="w-k">Now</span>
+      <span class="rw-phase" aria-live="assertive">Ready</span>
+      <span class="rw-left num">–</span>
+      <span class="rw-next fine">Press start when you are ready to walk.</span>
+    </div>
+    <div class="rw-prog" aria-hidden="true"><span></span></div>
+    <div class="w-btns">
+      <button type="button" class="w-btn" data-act="start">Start</button>
+      <button type="button" class="w-btn w-ghost" data-act="skip" disabled>Skip to next</button>
+      <button type="button" class="w-btn w-ghost" data-act="reset" disabled>Reset</button>
+      <label class="tog"><input type="checkbox" data-opt="voice" /><span>Say “run” and “walk”</span></label>
+    </div>
+    <p class="fine rw-hint">Keep this page open while you run. The timer keeps time even if the screen dims, and catches up when you look again.</p>
+  </div>
+</div>
+
+<style>
+  .rw-weeks { flex-wrap: wrap; border-radius: 18px; margin-top: 14px; }
+  .rw-bar { display: flex; gap: 2px; height: 26px; margin-top: 16px; border-radius: 8px; overflow: hidden; }
+  .rw-s { min-width: 2px; }
+  .rw-run { background: var(--accent); }
+  .rw-walk { background: color-mix(in srgb, var(--ink) 16%, transparent); }
+  .rw-s.is-now { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .rw-s.is-done { opacity: .35; }
+  .rw-key { display: flex; gap: 14px; margin-top: 8px; font: 500 11px/1 var(--f-mono); color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+  .rw-k::before { content: ""; display: inline-block; width: 12px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .rw-k-run::before { background: var(--accent); }
+  .rw-k-walk::before { background: color-mix(in srgb, var(--ink) 16%, transparent); }
+  .rw-desc { font-size: 16.5px !important; }
+  .rw-tot { color: var(--ink-2); }
+  .rw-timer { margin-top: 16px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+  .rw-now { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 2px 12px; }
+  .rw-now .w-k { grid-column: 1 / -1; }
+  .rw-phase { font: 700 clamp(34px, 5vw, 46px)/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
+  .rw[data-phase="run"] .rw-phase { color: var(--accent); }
+  .rw-left { font: 600 clamp(34px, 5vw, 46px)/1 var(--f-display); font-variant-numeric: tabular-nums; }
+  .rw-next { grid-column: 1 / -1; margin-top: 6px !important; }
+  .rw-prog { height: 6px; margin-top: 12px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .rw-prog span { display: block; height: 100%; width: 0; background: var(--ink); }
+</style>
+
+<script>
+  import { WEEKS, segments, describe, totalMinutes, runMinutes } from '../../data/runwalk.js';
+  import { fmtClock } from '../../scripts/run-math.js';
+
+  for (const el of document.querySelectorAll('[data-widget="runwalk"]')) init(el);
+
+  function init(el) {
+    const $ = s => el.querySelector(s);
+    const bar = $('.rw-bar'), desc = $('.rw-desc');
+    const phase = $('.rw-phase'), left = $('.rw-left'), nextEl = $('.rw-next'), prog = $('.rw-prog span');
+    const startB = $('[data-act="start"]'), skipB = $('[data-act="skip"]'), resetB = $('[data-act="reset"]');
+    const voice = $('[data-opt="voice"]');
+    let week = WEEKS[0], segs = segments(week);
+    let run = null; // { i, t0, elapsedBefore, paused }
+    let tick = null, wake = null, audio = null;
+
+    function drawWeek() {
+      segs = segments(week);
+      bar.innerHTML = segs.map(([k, m]) => `<span class="rw-s rw-${k}" style="flex-grow:${m}"></span>`).join('');
+      desc.innerHTML = `${describe(week)} <span class="rw-tot">${totalMinutes(week)} minutes in all, ${runMinutes(week)} of them running.</span>`;
+    }
+    el.querySelectorAll('[data-week]').forEach(b => b.addEventListener('click', () => {
+      el.querySelectorAll('[data-week]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      week = WEEKS[+b.dataset.week - 1];
+      reset();
+      drawWeek();
+    }));
+
+    // ---- sound, vibration and speech at each change
+    function beep(high) {
+      try {
+        audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+        const o = audio.createOscillator(), g = audio.createGain();
+        o.frequency.value = high ? 880 : 520; o.type = 'sine';
+        g.gain.setValueAtTime(0.0001, audio.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.3, audio.currentTime + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 0.35);
+        o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime + 0.4);
+      } catch (e) { /* no sound available */ }
+    }
+    function announce(kind, label) {
+      beep(kind === 'run');
+      if (navigator.vibrate) navigator.vibrate(kind === 'run' ? [200, 80, 200] : [400]);
+      if (voice.checked && 'speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(kind === 'run' ? 'Run' : label === 'Cool-down walk' ? 'Walk. Cool down.' : 'Walk');
+        speechSynthesis.cancel(); speechSynthesis.speak(u);
+      }
+    }
+
+    // ---- timing: from the clock, so a dimmed screen or a busy tab can't make it drift
+    const segStart = i => segs.slice(0, i).reduce((a, s) => a + s[1] * 60, 0);
+    const total = () => segStart(segs.length);
+    function elapsed() { return run ? run.elapsedBefore + (run.paused ? 0 : (performance.now() - run.t0) / 1000) : 0; }
+    function render() {
+      if (!run) return;
+      const e = elapsed();
+      let i = 0; while (i < segs.length - 1 && e >= segStart(i + 1)) i++;
+      if (e >= total()) { finish(); return; }
+      if (i !== run.i) { run.i = i; announce(segs[i][0], segs[i][2]); }
+      const [kind, m, label] = segs[i];
+      el.dataset.phase = kind;
+      phase.textContent = kind === 'run' ? 'Run' : 'Walk';
+      left.textContent = fmtClock(segStart(i) + m * 60 - e);
+      const nx = segs[i + 1];
+      nextEl.textContent = `${label}. ${nx ? `Next: ${nx[2].toLowerCase()} for ${fmtClock(nx[1] * 60)}.` : 'Last part of the session.'} ${fmtClock(total() - e)} to go.`;
+      prog.style.width = `${(e / total()) * 100}%`;
+      [...bar.children].forEach((s, k) => { s.classList.toggle('is-now', k === i); s.classList.toggle('is-done', k < i); });
+    }
+    async function keepAwake(on) {
+      try {
+        if (on && 'wakeLock' in navigator) wake = await navigator.wakeLock.request('screen');
+        else if (!on && wake) { await wake.release(); wake = null; }
+      } catch (e) { /* not allowed: fine */ }
+    }
+    function start() {
+      if (!run) { run = { i: -1, t0: performance.now(), elapsedBefore: 0, paused: false }; }
+      else if (run.paused) { run.t0 = performance.now(); run.paused = false; }
+      else { run.elapsedBefore = elapsed(); run.paused = true; }
+      startB.textContent = run.paused ? 'Resume' : 'Pause';
+      skipB.disabled = resetB.disabled = false;
+      clearInterval(tick); if (!run.paused) tick = setInterval(render, 250);
+      keepAwake(!run.paused);
+      render();
+    }
+    function skip() {
+      if (!run) return;
+      const e = elapsed();
+      let i = 0; while (i < segs.length - 1 && e >= segStart(i + 1)) i++;
+      run.elapsedBefore = Math.min(total(), segStart(i + 1)); run.t0 = performance.now();
+      render();
+    }
+    function finish() {
+      clearInterval(tick); keepAwake(false);
+      announce('walk', 'done');
+      phase.textContent = 'Done'; left.textContent = '0:00'; el.dataset.phase = 'done';
+      nextEl.textContent = `Week ${week.n}, session done. Well run.`;
+      prog.style.width = '100%';
+      [...bar.children].forEach(s => { s.classList.remove('is-now'); s.classList.add('is-done'); });
+      run = null; startB.textContent = 'Start again'; skipB.disabled = true;
+    }
+    function reset() {
+      clearInterval(tick); keepAwake(false); run = null;
+      delete el.dataset.phase; phase.textContent = 'Ready'; left.textContent = '–';
+      nextEl.textContent = 'Press start when you are ready to walk.'; prog.style.width = '0';
+      startB.textContent = 'Start'; skipB.disabled = resetB.disabled = true;
+      [...bar.children].forEach(s => s.classList.remove('is-now', 'is-done'));
+    }
+    startB.addEventListener('click', start);
+    skipB.addEventListener('click', skip);
+    resetB.addEventListener('click', reset);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); if (run && !run.paused) keepAwake(true); } });
+  }
+</script>

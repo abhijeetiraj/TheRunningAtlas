@@ -1,0 +1,61 @@
+---
+// The talk test as a dial: drag from 1 (very easy) to 10 (all out) and read what each effort feels like.
+// The mapping is a rule of thumb, not a measurement.
+const LEVELS = [
+  { n: 1, name: 'Very easy', talk: 'You could sing.', breath: 'Barely above resting.', use: 'Walking, warm-ups and cool-downs.' },
+  { n: 2, name: 'Easy', talk: 'You can chat in full sentences without pausing.', breath: 'Calm and steady, through your nose if you like.', use: 'Most of your running, especially at the start.' },
+  { n: 3, name: 'Easy', talk: 'Full sentences, with an occasional breath between them.', breath: 'Deeper, but relaxed.', use: 'Easy runs and long runs.' },
+  { n: 4, name: 'Comfortable', talk: 'You can still talk in sentences, but you would rather not give a speech.', breath: 'Noticeably deeper.', use: 'The top end of easy running.' },
+  { n: 5, name: 'Steady', talk: 'Talking in short sentences takes effort.', breath: 'Deep and rhythmic.', use: 'Steady runs for experienced runners.' },
+  { n: 6, name: 'Moderately hard', talk: 'A few words at a time.', breath: 'Fast and deep.', use: 'Tempo running, around the point where talking stops being comfortable.' },
+  { n: 7, name: 'Hard', talk: 'Short phrases only.', breath: 'Heavy.', use: 'Longer intervals.' },
+  { n: 8, name: 'Very hard', talk: 'One or two words.', breath: 'Hard and fast.', use: 'Short intervals and races.' },
+  { n: 9, name: 'Very, very hard', talk: 'You cannot talk.', breath: 'Gasping.', use: 'The end of a race or a hard repeat.' },
+  { n: 10, name: 'All out', talk: 'No words at all.', breath: 'Maximal.', use: 'Sprints of a few seconds.' },
+];
+const start = LEVELS[2];
+---
+<div class="widget dial" data-widget="effort" data-levels={JSON.stringify(LEVELS)}>
+  <h3 class="widget-h">The effort dial</h3>
+  <p class="fine">Drag to an effort and read what it feels like. A rule of thumb, not a measurement.</p>
+  <label class="w-field dial-in"><span>Effort, 1 to 10: <output data-out="n">{start.n}</output></span>
+    <input type="range" min="1" max="10" step="1" value={start.n} data-in="n" />
+  </label>
+  <div class="dial-scale" aria-hidden="true"><span>Easy</span><span>Moderate</span><span>Hard</span></div>
+  <div class="dial-card" aria-live="polite">
+    <p class="dial-name" data-out="name">{start.name}</p>
+    <dl class="dial-grid">
+      <div><dt>Talk test</dt><dd data-out="talk">{start.talk}</dd></div>
+      <div><dt>Breathing</dt><dd data-out="breath">{start.breath}</dd></div>
+      <div><dt>Good for</dt><dd data-out="use">{start.use}</dd></div>
+    </dl>
+  </div>
+</div>
+
+<style>
+  .dial-in { margin-top: 14px; }
+  .dial-in input { width: 100%; }
+  .dial-scale { display: flex; justify-content: space-between; font: 500 10.5px/1 var(--f-mono); color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+  .dial input[type="range"] { accent-color: var(--dial, var(--accent)); }
+  .dial-card { margin-top: 14px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); border-left: 6px solid var(--dial, var(--accent)); background: var(--card); }
+  .dial-name { margin: 0 !important; font: 700 30px/1 var(--f-display) !important; text-transform: uppercase; letter-spacing: .02em; }
+  .dial-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 12px 0 0; }
+  @media (max-width: 640px) { .dial-grid { grid-template-columns: 1fr; gap: 8px; } }
+  .dial-grid dt { font: 500 10.5px/1.3 var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); }
+  .dial-grid dd { margin: 4px 0 0; font-size: 16px; }
+</style>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="effort"]')) {
+    const L = JSON.parse(el.dataset.levels);
+    const input = el.querySelector('[data-in="n"]');
+    const set = (k, v) => { el.querySelector(`[data-out="${k}"]`).textContent = v; };
+    const tone = n => n <= 4 ? 'var(--accent)' : n <= 7 ? 'var(--m-work)' : 'var(--rust)';
+    const run = () => {
+      const l = L[+input.value - 1];
+      set('n', l.n); set('name', l.name); set('talk', l.talk); set('breath', l.breath); set('use', l.use);
+      el.style.setProperty('--dial', tone(l.n));
+    };
+    input.addEventListener('input', run); run();
+  }
+</script>

@@ -1,0 +1,48 @@
+---
+// Compares next week's planned running with last week's, and says how big the step is.
+// It never calls a plan "safe": a small step is not a guarantee, and how your body feels matters more.
+---
+<div class="widget" data-widget="progress">
+  <h3 class="widget-h">How big is next week's step?</h3>
+  <p class="fine">Use minutes or kilometres, whichever you track. Example values filled in.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Last week</span><input class="w-in" type="number" inputmode="decimal" min="0" step="1" value="60" data-in="last" /></label>
+    <label class="w-field"><span>Next week, planned</span><input class="w-in" type="number" inputmode="decimal" min="0" step="1" value="75" data-in="next" /></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Change</dt><dd data-out="pct">–</dd></div>
+    <div class="w-stat"><dt>A 10% step</dt><dd data-out="p10">–</dd></div>
+    <div class="w-stat"><dt>A 20% step</dt><dd data-out="p20">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg" aria-live="polite"></p>
+</div>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="progress"]')) {
+    const last = el.querySelector('[data-in="last"]'), next = el.querySelector('[data-in="next"]');
+    const out = k => el.querySelector(`[data-out="${k}"]`);
+    const r = x => (Math.round(x * 10) / 10).toString();
+    const run = () => {
+      const a = +last.value, b = +next.value;
+      const msg = out('msg');
+      if (!(a > 0) || !(b >= 0)) { out('pct').textContent = '–'; out('p10').textContent = out('p20').textContent = '–'; msg.textContent = 'Fill in last week to compare.'; delete msg.dataset.tone; return; }
+      const pct = (b - a) / a * 100;
+      out('pct').textContent = `${pct > 0 ? '+' : ''}${Math.round(pct)}%`;
+      out('p10').textContent = r(a * 1.1); out('p20').textContent = r(a * 1.2);
+      if (pct > 30) {
+        msg.dataset.tone = 'big';
+        msg.textContent = 'A big step. In one study of new runners, weekly distance jumps of more than 30% went with more of some overuse injuries. A smaller step, or holding steady for a week, gives your legs time to catch up.';
+      } else if (pct > 10) {
+        msg.dataset.tone = 'ok';
+        msg.textContent = 'A moderate step. Keep the extra running easy, and ease back if anything starts to hurt or you feel worn out.';
+      } else if (pct >= 0) {
+        msg.dataset.tone = 'ok';
+        msg.textContent = 'A small step or the same as last week. Small steps are not a guarantee against injury, so keep listening to your body.';
+      } else {
+        msg.dataset.tone = 'ok';
+        msg.textContent = 'A lighter week. Planned easier weeks every few weeks are a normal part of building up.';
+      }
+    };
+    last.addEventListener('input', run); next.addEventListener('input', run); run();
+  }
+</script>

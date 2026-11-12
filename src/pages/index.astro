@@ -1,7 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import Grades from '../components/Grades.astro';
-import { SECTIONS, PATHS, LABS, ROADMAP, BASE, href } from '../data/site.js';
+import { PATHS, LABS, ROADMAP, BASE, href } from '../data/site.js';
+import { atlas } from '../lib/atlas.js';
+
+const { sections, topics } = await atlas();
+const openCount = topics.filter(t => t.state === 'open').length;
 
 const ROUTE_MARKS = ['var(--accent)', 'var(--m-work)', 'var(--g-model)', 'var(--m-stretch)'];
 const pad = n => String(n).padStart(2, '0');
@@ -36,7 +40,7 @@ const pad = n => String(n).padStart(2, '0');
           <h3>{p.title}</h3>
           <p>{p.line}</p>
           <div class="route-go">
-            {p.go.map(n => <a class="chip" href={`#sec-${n}`}>{pad(n)} · {SECTIONS[n - 1].title}</a>)}
+            {p.go.map(n => <a class="chip" href={href(`/${sections[n - 1].slug}/`)}>{pad(n)} · {sections[n - 1].title}</a>)}
           </div>
         </div>
       ))}
@@ -44,28 +48,27 @@ const pad = n => String(n).padStart(2, '0');
   </section>
 
   <section class="wrap band" id="atlas">
-    <div class="band-head"><h2 class="h2">The atlas</h2><p class="sub">Eleven sections and about 90 topics, from first steps to deep science. Three pages are open in this preview; the rest are being mapped.</p></div>
+    <div class="band-head"><h2 class="h2">The atlas</h2><p class="sub">Eleven sections and {topics.length} topics, from first steps to deep science. {openCount} topics are open in this preview; the rest are being written.</p></div>
     <div class="plates">
-      {SECTIONS.map(s => {
+      {sections.map(s => {
         const shown = s.topics.slice(0, 5), more = s.topics.slice(5);
+        const item = t => <li class:list={[`tp-${t.state}`]}>{t.href ? <a href={href(t.href)}>{t.title}</a> : t.title}</li>;
         return (
-          <article class:list={['sec-plate', { 'is-live': s.live }]} id={`sec-${s.n}`}>
+          <article class:list={['sec-plate', { 'is-live': s.open > 0 }]} id={`sec-${s.n}`}>
             <div class="sp-top">
               <span class="sp-no">Section {pad(s.n)}</span>
-              <span class="sp-state">{s.live ? 'Open' : 'Being mapped'}</span>
+              <span class="sp-state">{s.open > 0 ? `${s.open} of ${s.topics.length} open` : 'Being written'}</span>
             </div>
             <div class="sp-body">
-              <h3><span class="vh">Section {s.n}: </span>{s.title}</h3>
+              <h3><span class="vh">Section {s.n}: </span><a href={href(`/${s.slug}/`)}>{s.title}</a></h3>
               <p class="sp-who">For {s.who.toLowerCase()}</p>
-              <ul class="topics">{shown.map(t => <li>{t}</li>)}</ul>
+              <ul class="topics">{shown.map(item)}</ul>
               {more.length > 0 && (
-                <details><summary>{more.length} more topic{more.length > 1 ? 's' : ''}</summary><ul class="topics">{more.map(t => <li>{t}</li>)}</ul></details>
+                <details><summary>{more.length} more topic{more.length > 1 ? 's' : ''}</summary><ul class="topics">{more.map(item)}</ul></details>
               )}
             </div>
             <div class="sp-foot">
-              {s.live
-                ? s.live.map(l => <a class="live-link" href={href(l.href)}>{l.label}</a>)
-                : <span>{s.n === 7 ? 'Clinician review first' : 'Coming later'}</span>}
+              <a class="live-link" href={href(`/${s.slug}/`)}>{s.open > 0 ? 'Open the section' : 'See what is coming'}</a>
             </div>
           </article>
         );
@@ -80,7 +83,7 @@ const pad = n => String(n).padStart(2, '0');
 
   <section class="wrap band">
     <div class="band-head"><h2 class="h2">3D labs</h2><p class="sub">Ideas that are hard to see in words get a 3D lab. Every lab has a text version beside it.</p></div>
-    <ol class="labs">
+    <ol class="labs" id="labs">
       {LABS.map(l => (
         <li class:list={['lab', { 'is-live': l.href }]}>
           {l.href

@@ -11,7 +11,7 @@ import '@fontsource/barlow-condensed/700.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 import '../styles/global.css';
-import { SITE, BASE, JEZERO, NAV, PREVIEW, href } from '../data/site.js';
+import { SITE, BASE, JEZERO, NAV, PREVIEW, SECTIONS, href } from '../data/site.js';
 import { marsSun } from '../lib/mars.js';
 
 const { title, description = SITE.description } = Astro.props;
@@ -70,6 +70,10 @@ const skyScript = `(function(){var d=document.documentElement,s=null;try{s=local
     <slot />
   </main>
   <footer class="foot">
+    <nav class="wrap foot-map" aria-label="All sections">
+      <p class="label">The atlas</p>
+      <ol>{SECTIONS.map(s => <li><a href={href(`/${s.slug}/`)}><span class="mono">{String(s.n).padStart(2, '0')}</span>{s.title}</a></li>)}</ol>
+    </nav>
     <div class="wrap foot-in">
       <p>{SITE.name} is part of <a href={BASE.home}>{BASE.name}</a>, {BASE.owner}’s portfolio, next to <a href={BASE.gym}>{BASE.gymName}</a>.{PREVIEW && ' Preview build.'}</p>
       <p><a href={href('/library/evidence/')}>Evidence ledger</a></p>

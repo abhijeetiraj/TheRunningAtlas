@@ -1,0 +1,10 @@
+---
+// A boxed aside inside an article. kind: 'care' (when to get help, always shown in full), 'try' (something to do),
+// 'model' (a simplified model or rule of thumb, labelled as such) or 'note'.
+const { kind = 'note', title } = Astro.props;
+const LABEL = { care: 'Get it checked', try: 'Try this', model: 'Model', note: 'Note' };
+---
+<aside class={`box box-${kind}`}>
+  <p class="box-k">{title || LABEL[kind]}</p>
+  <slot />
+</aside>

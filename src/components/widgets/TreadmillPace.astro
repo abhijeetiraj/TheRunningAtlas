@@ -1,0 +1,33 @@
+---
+// Treadmill speed to pace, both ways, in km and miles.
+---
+<div class="widget" data-widget="treadmill">
+  <h3 class="widget-h">Treadmill speed to pace</h3>
+  <p class="fine">Type a treadmill speed. Example value filled in.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Speed</span><input class="w-in" type="number" inputmode="decimal" min="1" max="30" step="0.1" value="10" data-in="v" /></label>
+    <label class="w-field"><span>Unit</span><select class="w-in" data-in="u"><option value="kmh" selected>km/h</option><option value="mph">mph</option></select></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Pace per km</dt><dd data-out="km">–</dd></div>
+    <div class="w-stat"><dt>Pace per mile</dt><dd data-out="mi">–</dd></div>
+    <div class="w-stat"><dt>Other unit</dt><dd data-out="other">–</dd></div>
+  </dl>
+</div>
+
+<script>
+  import { KM_PER_MI, fmtPace, round } from '../../scripts/run-math.js';
+  for (const el of document.querySelectorAll('[data-widget="treadmill"]')) {
+    const v = el.querySelector('[data-in="v"]'), u = el.querySelector('[data-in="u"]');
+    const out = k => el.querySelector(`[data-out="${k}"]`);
+    const run = () => {
+      const s = +v.value;
+      if (!(s > 0)) { out('km').textContent = out('mi').textContent = out('other').textContent = '–'; return; }
+      const kmh = u.value === 'kmh' ? s : s * KM_PER_MI;
+      out('km').innerHTML = `${fmtPace(3600 / kmh)}<small>/km</small>`;
+      out('mi').innerHTML = `${fmtPace(3600 / kmh * KM_PER_MI)}<small>/mi</small>`;
+      out('other').innerHTML = u.value === 'kmh' ? `${round(kmh / KM_PER_MI)}<small>mph</small>` : `${round(kmh)}<small>km/h</small>`;
+    };
+    v.addEventListener('input', run); u.addEventListener('change', run); run();
+  }
+</script>
