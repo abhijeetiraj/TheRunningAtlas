@@ -9,6 +9,7 @@ import ShoeLab from '../../components/labs/ShoeLab.astro';
 import OxygenLab from '../../components/labs/OxygenLab.astro';
 import FibreLab from '../../components/labs/FibreLab.astro';
 import StrengthLab from '../../components/labs/StrengthLab.astro';
+import BodyMapLab from '../../components/labs/BodyMapLab.astro';
 import { atlas, builtTopics } from '../../lib/atlas.js';
 import { claimsFor } from '../../data/claims.js';
 import { href } from '../../data/site.js';
@@ -33,7 +34,7 @@ const at = linked.indexOf(t);
 const prev = linked[at - 1], next = linked[at + 1];
 const KIND = { article: 'Article', tool: 'Tool', lab: '3D lab' };
 // a topic's 3D lab, shown full width between the summary and the article
-const LAB = { spring: SpringLab, shoe: ShoeLab, oxygen: OxygenLab, fibres: FibreLab, strength: StrengthLab };
+const LAB = { spring: SpringLab, shoe: ShoeLab, oxygen: OxygenLab, fibres: FibreLab, strength: StrengthLab, bodymap: BodyMapLab };
 const Lab = d.lab ? LAB[d.lab] : null;
 const fmtDate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 ---
@@ -42,7 +43,7 @@ const fmtDate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'lon
     <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><a href={href(`/${s.slug}/`)}>Section {s.n} · {s.title}</a><span aria-hidden="true">/</span><span aria-current="page">{d.title}</span></nav>
     <h1 class="display page-title">{d.title}</h1>
     <p class="lede">{d.summary}</p>
-    <p class="meta"><span>{KIND[d.kind]}</span><span>About {d.read} min read</span>{claims.length > 0 && <span>{claims.length} claims graded</span>}<span>Updated {fmtDate(d.updated)}</span></p>
+    <p class="meta"><span>{KIND[d.kind]}</span><span>About {d.read} min read</span>{claims.length > 0 && <span>{claims.length} {claims.length === 1 ? 'claim' : 'claims'} graded</span>}<span>Updated {fmtDate(d.updated)}</span></p>
   </header>
 
   {draft && (

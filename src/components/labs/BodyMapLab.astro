@@ -1,0 +1,101 @@
+---
+// The Injury body map: pick an area on the 3D runner to read about the common running injury usually felt there,
+// and when to get it checked. It is for reading, not a symptom checker: it asks nothing about the reader's pain.
+import Cite from '../Cite.astro';
+import TopicLink from '../TopicLink.astro';
+import { AREAS } from '../../data/body-map.js';
+---
+<section class="lab-shell" id="lab" aria-label="Injury body map">
+  <div class="wrap">
+    <div class="lab-title"><span class="label">3D lab</span><h2 class="h2">Injury body map</h2></div>
+    <p class="bm-intro">Pick an area to read about the running injury most often felt there. This can't tell you what's causing your pain: only an examination can<Cite id="I4" />.</p>
+    <div class="studio-grid">
+      <ol class="move-list" aria-label="Areas">
+        {AREAS.map((a, i) => (
+          <li><button type="button" data-area={a.id} aria-pressed={String(i === 0)}><span class="mv-no">{i + 1}</span><span class="mv-name">{a.name}</span><span class="mv-dose">{a.injury}</span></button></li>
+        ))}
+      </ol>
+      <div class="studio-main">
+        <div class="stage-wrap">
+          <div class="stage stage-wide" id="bodyStage">
+            <div class="callouts" id="bodyCallouts"></div>
+          </div>
+          <div class="legend" aria-hidden="true"><span class="label">Legend</span><span class="lg lg-spot">Where it's usually felt</span><span class="lg lg-work">Muscles nearby</span></div>
+        </div>
+
+        <div class="move-card bm-card" data-card="knee-front">
+          <div class="mc-head"><span class="mc-no">1/6</span><h3 class="mc-name">Runner's knee</h3><span class="mc-dose">Patellofemoral pain</span></div>
+          <dl class="mc-grid">
+            <div><dt>Where</dt><dd>Around or behind the kneecap, often hard to pin to one spot. Squatting, running and stairs usually bring it on<Cite id="I5" />.</dd></div>
+            <div><dt>What helps</dt><dd>Exercise for the hip and knee muscles is the main treatment; taping or insoles may help for a while<Cite id="I6" />.</dd></div>
+            <div><dt>Get it checked</dt><dd>Soon if the knee swells, locks or gives way. Seek care now if you can't put weight on the leg, or the knee swelled up quickly after a fall or twist.</dd></div>
+          </dl>
+          <p class="bm-more">Read more: <TopicLink to="injuries-health/runners-knee" /></p>
+        </div>
+
+        <div class="move-card bm-card" data-card="knee-outer" hidden>
+          <div class="mc-head"><span class="mc-no">2/6</span><h3 class="mc-name">Outer knee pain</h3><span class="mc-dose">Iliotibial band (ITB)</span></div>
+          <dl class="mc-grid">
+            <div><dt>Where</dt><dd>The outside of the knee, where the band of tissue running down the outer thigh crosses the joint.</dd></div>
+            <div><dt>What helps</dt><dd>Treatment research is poor and conflicting<Cite id="I12" />. Easing back on running and strengthening the hip are common first steps.</dd></div>
+            <div><dt>Get it checked</dt><dd>Soon if it isn't improving after a few weeks of easing back, or the knee swells, locks or gives way. Seek care now if you can't put weight on the leg.</dd></div>
+          </dl>
+          <p class="bm-more">Read more: <TopicLink to="injuries-health/outer-knee-itb" /></p>
+        </div>
+
+        <div class="move-card bm-card" data-card="shin" hidden>
+          <div class="mc-head"><span class="mc-no">3/6</span><h3 class="mc-name">Shin splints</h3><span class="mc-dose">Medial tibial stress syndrome</span></div>
+          <dl class="mc-grid">
+            <div><dt>Where</dt><dd>Along the inner edge of the shin bone, spread over a length rather than in one spot. One of the most common running injuries<Cite id="I1" />.</dd></div>
+            <div><dt>What helps</dt><dd>No treatment has been proven better than reducing the load and building back up<Cite id="I7" />.</dd></div>
+            <div><dt>Get it checked</dt><dd>Stop running and get it checked soon if the pain is in one small spot on the bone, hurts at rest or at night, or makes you limp. It could be a bone stress injury.</dd></div>
+          </dl>
+          <p class="bm-more">Read more: <TopicLink to="injuries-health/shin-pain" /></p>
+        </div>
+
+        <div class="move-card bm-card" data-card="achilles" hidden>
+          <div class="mc-head"><span class="mc-no">4/6</span><h3 class="mc-name">Achilles pain</h3><span class="mc-dose">Achilles tendinopathy</span></div>
+          <dl class="mc-grid">
+            <div><dt>Where</dt><dd>The tendon at the back of the ankle, above the heel. One of the most common running injuries<Cite id="I1" />.</dd></div>
+            <div><dt>What helps</dt><dd>Loading the tendon with calf exercises. In a trial, running within a pain limit did as well as resting from it<Cite id="I2" />.</dd></div>
+            <div><dt>Seek care now</dt><dd>After a snap or pop, sudden severe pain, or if you can't rise up on your toes on that leg<Cite id="I9" />.</dd></div>
+          </dl>
+          <p class="bm-more">Read more: <TopicLink to="injuries-health/achilles-pain" /></p>
+        </div>
+
+        <div class="move-card bm-card" data-card="heel" hidden>
+          <div class="mc-head"><span class="mc-no">5/6</span><h3 class="mc-name">Heel pain</h3><span class="mc-dose">Plantar fasciitis</span></div>
+          <dl class="mc-grid">
+            <div><dt>Where</dt><dd>Under the heel or in the arch, typically worst with the first steps in the morning or after sitting<Cite id="I10" />.</dd></div>
+            <div><dt>What helps</dt><dd>Most cases improve<Cite id="I10" />. In one trial, heavy heel raises with insoles gave better function than stretching at 3 months, though not later<Cite id="I11" />.</dd></div>
+            <div><dt>Get it checked</dt><dd>Soon if it isn't improving after a few weeks, or there's numbness, tingling, swelling or pain at night. Seek care now after a fall or jump, or if you can't put weight on the foot.</dd></div>
+          </dl>
+          <p class="bm-more">Read more: <TopicLink to="injuries-health/heel-pain" /></p>
+        </div>
+
+        <div class="move-card bm-card" data-card="bone" hidden>
+          <div class="mc-head"><span class="mc-no">6/6</span><h3 class="mc-name">Bone stress injuries</h3><span class="mc-dose">Stress reactions and stress fractures</span></div>
+          <dl class="mc-grid">
+            <div><dt>Where</dt><dd>One spot on a bone that hurts to press, such as the shin, the top of the foot or the hip<Cite id="I13" />.</dd></div>
+            <div><dt>What helps</dt><dd>Rest from running, then a gradual return. Some sites, such as the hip, need more than that<Cite id="I14" />.</dd></div>
+            <div><dt>Get it checked</dt><dd>Stop running and get it checked soon for bone pain in one spot. Stop running and seek care now for pain deep in the groin or the front of the hip with running or walking<Cite id="I14" />.</dd></div>
+          </dl>
+          <p class="bm-more">Read more: <TopicLink to="injuries-health/bone-stress" /></p>
+        </div>
+
+        <p class="fine">Turn the runner with your finger or mouse, and tap a marker to choose an area. Other causes of pain in each area exist; a physiotherapist or doctor can tell them apart.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .bm-intro { margin: -4px 0 14px; max-width: 70ch; color: var(--ink-2); }
+  .bm-more { margin: 12px 0 0; font-size: 15px; }
+  .lg-spot::before { width: 10px; height: 10px; border-radius: 50%; background: #ff5a3c; box-shadow: 0 0 6px 2px rgba(255, 90, 60, .5); }
+</style>
+
+<script>
+  import { initBodyMap } from '../../scripts/labs/bodymap.js';
+  initBodyMap(document.getElementById('lab'));
+</script>

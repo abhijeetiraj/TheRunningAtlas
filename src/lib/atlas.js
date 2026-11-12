@@ -50,7 +50,7 @@ export async function atlas() {
     if (!l.topic) return l;
     const t = topics.find(x => x.id === l.topic);
     if (!t) throw new Error(`Lab "${l.name}": no topic ${l.topic} in SECTIONS`);
-    return { ...l, href: t.href ? `${t.href}#lab` : null };
+    return { ...l, href: t.href ? `${t.href}#lab` : null, review: !t.href && t.state === 'review' };
   });
   for (const s of sections) s.labs = labs.filter(l => l.section === s.n);
   cache = { sections, topics, labs };

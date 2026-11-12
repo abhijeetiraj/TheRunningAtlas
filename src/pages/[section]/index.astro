@@ -60,7 +60,7 @@ const review = s.topics.filter(t => t.state === 'review').length;
           <li class:list={['lab', { 'is-live': l.href }]}>
             {l.href
               ? <a href={href(l.href)}><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Open</span></a>
-              : <div><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Planned</span></div>}
+              : <div><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">{l.review ? 'In clinician review' : 'Planned'}</span></div>}
           </li>
         ))}
       </ol>
