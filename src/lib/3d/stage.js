@@ -26,7 +26,19 @@ function seeded(seed) {
 const isDusk = () => document.documentElement.dataset.sky === 'dusk';
 
 /** Returns null when WebGL is not available, so the page can show its text-only fallback. */
+/** Whether this browser can draw WebGL 2 at all. Asked first, because three.js logs an error when it can't. */
+function canDraw() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2');
+    gl?.getExtension('WEBGL_lose_context')?.loseContext(); // only a test: give the context back
+    return !!gl;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function createStage() {
+  if (!canDraw()) return null;
   let theme = isDusk() ? MARS.dusk : MARS.day;
   let renderer;
   try {
