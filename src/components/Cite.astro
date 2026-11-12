@@ -1,0 +1,7 @@
+---
+// An inline citation: a small link to the claim's row in the page's evidence ledger.
+import { claimById, GRADES } from '../data/claims.js';
+const { id } = Astro.props;
+const c = claimById(id);
+---
+<a class={`cite cite-${c.grade}`} href={`#claim-${id}`} title={`${c.src} · ${GRADES[c.grade].label}`} aria-label={`Source ${id}, ${GRADES[c.grade].label}`}>{id}</a>

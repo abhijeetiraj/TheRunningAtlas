@@ -1,0 +1,142 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cite from '../../components/Cite.astro';
+import Ledger from '../../components/Ledger.astro';
+import Article from '../../articles/stride.mdx';
+import { claimsFor } from '../../data/claims.js';
+import { href } from '../../data/site.js';
+
+const claims = claimsFor('stride');
+const MOMENTS = [
+  { id: 'landing', name: 'Landing' },
+  { id: 'loading', name: 'Loading' },
+  { id: 'midstance', name: 'Midstance' },
+  { id: 'pushoff', name: 'Push-off' },
+  { id: 'float', name: 'Float' },
+  { id: 'swing', name: 'Swing' },
+];
+---
+<Base title="The running stride" description="Slow a 3D runner down through one stride: landing, loading, midstance, push-off, float and swing, with forces and working muscles.">
+  <header class="page-head wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><span>Section 2 · How running works</span><span aria-hidden="true">/</span><span aria-current="page">The running stride</span></nav>
+    <h1 class="display page-title">The running stride</h1>
+    <p class="lede">Each stride, a leg lands, carries your weight, pushes off, then swings through while you float. Slow it down and watch every moment.</p>
+    <p class="meta"><span>3D lab</span><span>About 10 min read</span><span>{claims.length} claims graded</span></p>
+  </header>
+
+  <section class="lab-shell" id="lab" aria-label="Running stride lab">
+    <div class="wrap lab-grid">
+      <div class="lab-main">
+        <div class="stage-wrap">
+          <div class="stage stage-wide" id="stage">
+            <div class="hud hud-tl" aria-live="polite"><span class="hud-k">Right leg</span><span class="hud-big" id="moment">Landing</span><span class="hud-sub" id="momentSub">Right foot on the ground</span></div>
+            <div class="hud hud-tr"><span class="tele" id="hudPace"></span></div>
+            <div class="callouts" id="callouts"></div>
+          </div>
+          <div class="legend" aria-hidden="true"><span class="label">Legend</span><span class="lg lg-work">Working muscle</span><span class="lg lg-spring">Achilles tendon</span><span class="lg lg-force">Ground force</span><span class="lg lg-path">Foot path</span></div>
+        </div>
+        <div class="controls">
+          <div class="ctl-row">
+            <button class="btn-play" id="play" aria-label="Pause"></button>
+            <div class="scrub">
+              <div class="strip" id="strip" aria-hidden="true"></div>
+              <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Moment in the stride, as a share of one stride" />
+            </div>
+            <div class="seg" role="group" aria-label="Playback speed">
+              <button data-rate="1" aria-pressed="false">Real time</button><button data-rate="0.25" aria-pressed="true">¼</button><button data-rate="0.08" aria-pressed="false">1/12</button>
+            </div>
+          </div>
+          <div class="ctl-grid">
+            <div class="ctl">
+              <label for="speed" class="ctl-label">Running speed <output id="speedOut" for="speed"></output></label>
+              <input type="range" id="speed" min="2.2" max="6" step="0.05" value="3.3" />
+              <div class="ticks" aria-hidden="true"><span>Easy jog</span><span>Fast</span></div>
+            </div>
+            <div class="ctl">
+              <span class="ctl-label" id="strikeLbl">Foot strike</span>
+              <div class="seg" role="group" aria-labelledby="strikeLbl"><button data-strike="heel" aria-pressed="true">Heel</button><button data-strike="mid" aria-pressed="false">Midfoot</button><button data-strike="fore" aria-pressed="false">Forefoot</button></div>
+            </div>
+            <div class="ctl">
+              <span class="ctl-label" id="viewLbl">View</span>
+              <div class="seg" role="group" aria-labelledby="viewLbl"><button data-view="side" aria-pressed="true">Side</button><button data-view="front" aria-pressed="false">Front</button><button data-view="back" aria-pressed="false">Behind</button><button data-view="angle" aria-pressed="false">Angle</button></div>
+            </div>
+            <div class="ctl">
+              <span class="ctl-label" id="showLbl">Show</span>
+              <div class="toggles" role="group" aria-labelledby="showLbl">
+                <label class="tog"><input type="checkbox" id="tMuscles" checked /><span>Muscles</span></label>
+                <label class="tog"><input type="checkbox" id="tForce" checked /><span>Force</span></label>
+                <label class="tog"><input type="checkbox" id="tPath" /><span>Foot path</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="lab-side">
+        <h2 class="side-h">This stride, in numbers</h2>
+        <dl class="readouts" id="readouts"></dl>
+        <p class="fine">Model values for a typical recreational runner<Cite id="R1" />, not measurements. Your own numbers will differ.</p>
+        <div class="chart-card">
+          <h3 class="side-h">Ground force through one stride</h3>
+          <p class="fine">Upward push of the ground on each foot, in body weights. The dashed line is body weight.</p>
+          <canvas id="chart" height="190" role="img" aria-label="Chart of ground force on each foot through one stride"></canvas>
+          <div class="chart-key"><span class="ck ck-r">Right foot</span><span class="ck ck-l">Left foot</span><span class="ck ck-f">Both feet off the ground</span></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="wrap band">
+    <div class="band-head"><h2 class="h2">Six moments in one stride</h2><p class="sub">Pick a moment to freeze the runner there. The lab follows the right leg.</p></div>
+    <div class="moments">
+      {MOMENTS.map((m, i) => (
+        <article class="moment" data-moment={m.id}>
+          <button class="moment-btn" data-go-moment={m.id}><span class="moment-no">{i + 1}</span><span class="moment-name">{m.name}</span><span class="moment-show">Show me</span></button>
+          {m.id === 'landing' && <p>The foot touches down a little ahead of your body. In one road race, about 89% of 936 runners filmed at the 10 km mark landed heel first<Cite id="R9" />. Thigh and calf muscles switch on just before contact<Cite id="R4" />.</p>}
+          {m.id === 'loading' && <p>Knee and ankle bend to soak up the landing. The quads and calves work while being stretched, like brakes. Force climbs fast, and a heel landing adds a quick spike first, the impact peak<Cite id="R3" />.</p>}
+          {m.id === 'midstance' && <p>Your body passes over the foot and reaches its lowest point. The Achilles tendon and the arch are stretched the most here, storing energy like springs<Cite id="R5" />.</p>}
+          {m.id === 'pushoff' && <p>Hip, knee and ankle straighten. The heel lifts, the calf and Achilles recoil, and the stored energy helps send you forward and up.</p>}
+          {m.id === 'float' && <p>Both feet are off the ground. Running has two floats in every stride. Walking has none, because one foot is always down.</p>}
+          {m.id === 'swing' && <p>The free leg folds, heel towards your seat, and the hip flexors pull it forward. Near the end, the hamstrings work to slow the lower leg before the next landing.</p>}
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <div class="wrap prose-grid">
+    <article class="prose">
+      <Article />
+    </article>
+    <aside class="tools" aria-label="Find your numbers">
+      <h2 class="side-h">Find your numbers</h2>
+      <div class="tool">
+        <h3>Cadence counter</h3>
+        <p class="fine">On a treadmill, tap each time a foot lands. Or count your steps for 30 seconds and double it.</p>
+        <button class="tap" id="tap">Tap each step</button>
+        <p class="tool-out" aria-live="polite"><span class="num" id="tapOut">–</span> <span>steps per minute</span></p>
+        <button class="linkish" id="tapReset">Start again</button>
+      </div>
+      <div class="tool">
+        <h3>Your step length</h3>
+        <p class="fine">Example values filled in. Change them to yours.</p>
+        <div class="inline-fields">
+          <label for="pm">Pace</label>
+          <span class="pace-in"><input id="pm" type="number" inputmode="numeric" min="2" max="15" value="5" aria-label="Pace minutes" />:<input id="ps" type="number" inputmode="numeric" min="0" max="59" value="30" aria-label="Pace seconds" /><span class="unit">/km</span></span>
+          <label for="cad">Cadence</label>
+          <span class="pace-in"><input id="cad" type="number" inputmode="numeric" min="120" max="230" value="168" /><span class="unit">steps/min</span></span>
+        </div>
+        <p class="tool-out" id="slOut" aria-live="polite"></p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="wrap band" id="evidence">
+    <div class="band-head"><h2 class="h2">Evidence ledger</h2><p class="sub">Every claim on this page, its source and how well it has been checked. No full texts have been read for this page yet.</p></div>
+    <Ledger claims={claims} />
+    <p class="fine">General information, not medical advice.</p>
+  </section>
+</Base>
+
+<script>
+  import { initStride } from '../../scripts/stride.js';
+  initStride();
+</script>

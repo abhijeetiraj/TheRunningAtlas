@@ -1,0 +1,85 @@
+---
+// Page shell: head, header with the atlas navigation and the Day/Dusk switch, footer.
+// The look follows Jezero Base (abhijeeti.dev): Barlow Condensed, Barlow and IBM Plex Mono on Mars sand by Day,
+// and navy by Dusk. Day/Dusk is set before the first paint, exactly as the base does it.
+import '@fontsource/barlow/400.css';
+import '@fontsource/barlow/400-italic.css';
+import '@fontsource/barlow/500.css';
+import '@fontsource/barlow/600.css';
+import '@fontsource/barlow-condensed/600.css';
+import '@fontsource/barlow-condensed/700.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '../styles/global.css';
+import { SITE, BASE, JEZERO, NAV, PREVIEW, href } from '../data/site.js';
+import { marsSun } from '../lib/mars.js';
+
+const { title, description = SITE.description } = Astro.props;
+const pageTitle = title ? `${title} · ${SITE.name} · ${BASE.name}` : `${SITE.name}: ${SITE.tagline} · ${BASE.name}`;
+const here = Astro.url.pathname.replace(/\/?$/, '/');
+// Canonical and social tags need the site's address (SITE_URL at build time).
+const canonical = Astro.site ? new URL(here, Astro.site).href : null;
+const ogImage = Astro.site ? new URL(href('/og.jpg'), Astro.site).href : null;
+const isCurrent = (p) => here === href(p).replace(/\/?$/, '/');
+const skyScript = `(function(){var d=document.documentElement,s=null;try{s=localStorage.getItem('jezero-sky')}catch(e){}if(s!=='day'&&s!=='dusk')s=(${marsSun.toString()})(Date.now(),${JEZERO.lat},${JEZERO.lon})>0?'day':'dusk';d.setAttribute('data-sky',s)})();`;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={description} />
+  {canonical && <link rel="canonical" href={canonical} />}
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={SITE.name} />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={description} />
+  {canonical && <meta property="og:url" content={canonical} />}
+  {ogImage && <meta property="og:image" content={ogImage} />}
+  {ogImage && <meta property="og:image:width" content="1200" />}
+  {ogImage && <meta property="og:image:height" content="630" />}
+  {ogImage && <meta property="og:image:alt" content="A white 3D figure jogging across red Martian ground" />}
+  <meta name="twitter:card" content="summary_large_image" />
+  {PREVIEW && <meta name="robots" content="noindex, nofollow" />}
+  <meta name="theme-color" content="#fbf6f0" />
+  <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />
+  <script is:inline set:html={skyScript} />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <div class="wrap top-in">
+      <a class="brand" href={BASE.home} aria-label={`${BASE.owner}, ${BASE.name}: back to the base`}>
+        <span class="brand-name">{BASE.owner}</span>
+        <span class="brand-sub">{BASE.name} · Running Atlas</span>
+      </a>
+      <div class="sky seg" role="group" aria-label="Sky">
+        <button type="button" data-sky="now" aria-pressed="false" title="The sky as it is at Jezero right now: Day while the Sun is up there">Now</button>
+        <button type="button" data-sky="day" aria-pressed="false">Day</button>
+        <button type="button" data-sky="dusk" aria-pressed="false">Dusk</button>
+      </div>
+      <nav class="nav" aria-label="Running Atlas">
+        <a class="nav-gym" href={BASE.gym}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>{BASE.gymName}</a>
+        {NAV.map(n => <a href={href(n.href)} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>)}
+      </nav>
+      {PREVIEW && <span class="preview-chip">Preview</span>}
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <slot />
+  </main>
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <p>{SITE.name} is part of <a href={BASE.home}>{BASE.name}</a>, {BASE.owner}’s portfolio, next to <a href={BASE.gym}>{BASE.gymName}</a>.{PREVIEW && ' Preview build.'}</p>
+      <p><a href={href('/library/evidence/')}>Evidence ledger</a></p>
+      <p>General information, not medical advice.</p>
+    </div>
+  </footer>
+</body>
+</html>
+
+<script>
+  import { initSky } from '../scripts/sky.js';
+  initSky();
+</script>

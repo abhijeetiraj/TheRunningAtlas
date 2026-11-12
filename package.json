@@ -1,0 +1,25 @@
+{
+  "name": "the-running-atlas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The Running Atlas: a running guide from first run to the science of the stride, with interactive 3D.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "build:jezero": "BASE_PATH=/running/ SITE_URL=https://abhijeeti.dev PUBLIC_HOME_URL= astro build",
+    "publish:jezero": "npm run build:jezero && node tools/publish-to-base.mjs",
+    "preview": "astro preview"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "8.1.5",
+    "@fontsource/barlow": "5.3.0",
+    "@fontsource/barlow-condensed": "5.3.0",
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "astro": "7.4.11",
+    "three": "0.169.0"
+  }
+}
