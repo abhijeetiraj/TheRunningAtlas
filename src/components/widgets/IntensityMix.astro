@@ -1,0 +1,62 @@
+---
+// Intensity mix: a week of running split by effort, as a share of total time (claim T3, arithmetic).
+// Effort is set by the talk test, so it needs no heart-rate monitor. It describes a week; it does not grade it.
+---
+<div class="widget" data-widget="mix">
+  <h3 class="widget-h">Your intensity mix</h3>
+  <p class="fine">Enter a typical week's running in minutes, split by how it felt. Example values filled in.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Easy: full sentences</span><input class="w-in" type="number" inputmode="numeric" min="0" max="2000" step="5" value="150" data-in="easy" /></label>
+    <label class="w-field"><span>Steady: short phrases</span><input class="w-in" type="number" inputmode="numeric" min="0" max="2000" step="5" value="40" data-in="mid" /></label>
+    <label class="w-field"><span>Hard: a few words</span><input class="w-in" type="number" inputmode="numeric" min="0" max="2000" step="5" value="15" data-in="hard" /></label>
+  </div>
+  <div class="mix-bar" aria-hidden="true"><span class="mix-easy" data-bar="easy"></span><span class="mix-mid" data-bar="mid"></span><span class="mix-hard" data-bar="hard"></span></div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Total</dt><dd data-out="total">–</dd></div>
+    <div class="w-stat"><dt><span class="sw mix-sw-easy"></span>Easy</dt><dd data-out="easy">–</dd></div>
+    <div class="w-stat"><dt><span class="sw mix-sw-mid"></span>Steady</dt><dd data-out="mid">–</dd></div>
+    <div class="w-stat"><dt><span class="sw mix-sw-hard"></span>Hard</dt><dd data-out="hard">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg" aria-live="polite"></p>
+</div>
+
+<style is:global>
+  .mix-bar { display: flex; height: 22px; margin-top: 16px; border-radius: 999px; overflow: hidden; border: 1px solid var(--line-strong); background: var(--card); }
+  .mix-bar span { display: block; height: 100%; transition: width .25s ease; }
+  .mix-easy, .mix-sw-easy { background: var(--accent); }
+  .mix-mid, .mix-sw-mid { background: #d9a441; }
+  .mix-hard, .mix-sw-hard { background: var(--rust); }
+  @media (prefers-reduced-motion: reduce) { .mix-bar span { transition: none; } }
+</style>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="mix"]')) init(el);
+  function init(el) {
+    const keys = ['easy', 'mid', 'hard'];
+    const q = k => el.querySelector(`[data-in="${k}"]`), out = k => el.querySelector(`[data-out="${k}"]`);
+    const hm = m => (m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}` : `${Math.round(m)} min`);
+    function run() {
+      const v = Object.fromEntries(keys.map(k => [k, Math.max(0, +q(k).value || 0)]));
+      const tot = v.easy + v.mid + v.hard, msg = out('msg');
+      if (!(tot > 0)) {
+        keys.forEach(k => { out(k).textContent = '–'; el.querySelector(`[data-bar="${k}"]`).style.width = '0'; });
+        out('total').textContent = '–'; msg.textContent = 'Enter some running to see the mix.'; delete msg.dataset.tone; return;
+      }
+      const pct = Object.fromEntries(keys.map(k => [k, v[k] / tot * 100]));
+      keys.forEach(k => { out(k).innerHTML = `${Math.round(pct[k])}<small>%</small>`; el.querySelector(`[data-bar="${k}"]`).style.width = `${pct[k]}%`; });
+      out('total').textContent = hm(tot);
+      if (pct.easy >= 75) {
+        msg.dataset.tone = 'ok';
+        msg.textContent = 'Mostly easy. That is close to the pattern seen in well-trained endurance athletes, who do about four in five sessions at low intensity. (That figure counts sessions, not minutes, so treat it as a rough guide.)';
+      } else if (pct.mid >= pct.hard * 2 && pct.mid >= 25) {
+        msg.dataset.tone = 'big';
+        msg.textContent = 'A lot of steady, in-between running. Coaches often warn that it is easy to drift into: harder to recover from than easy running, but not hard enough to count as a workout. Try making your easy runs truly easy, and keep the harder work to a session or two.';
+      } else {
+        msg.dataset.tone = 'big';
+        msg.textContent = 'Less than three-quarters easy. Most training advice keeps the bulk of the week at an easy, chatty effort, so you recover between the harder sessions. A harder week now and then is fine; watch for it becoming the norm.';
+      }
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>

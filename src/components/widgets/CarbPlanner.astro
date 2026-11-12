@@ -1,0 +1,62 @@
+---
+// Carbohydrate planner: arithmetic on the published ranges (claims F3, F4; the planner itself is F6, a model).
+// It gives upper guides by duration and how many of your own gels or drinks that is. It never tells anyone how
+// much they must take, and it says to practise in training.
+---
+<div class="widget" data-widget="carbs">
+  <h3 class="widget-h">Carbohydrate on the run</h3>
+  <p class="fine">Your expected time, and the carbohydrate in one of your gels, chews or drink servings (it's on the label). Example values filled in. Arithmetic on published guides, not advice for you in particular.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Expected time</span><span class="w-time"><input class="w-in" type="number" inputmode="numeric" min="0" max="12" value="2" data-in="h" aria-label="Hours" />h<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="15" data-in="m" aria-label="Minutes" />min</span></label>
+    <label class="w-field"><span>Carbs per serving, g</span><input class="w-in" type="number" inputmode="numeric" min="5" max="120" value="25" data-in="g" /></label>
+    <label class="w-field"><span>Body mass, kg (optional)</span><input class="w-in" type="number" inputmode="decimal" min="25" max="200" placeholder="–" data-in="kg" /></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Per hour, up to</dt><dd data-out="rate">–</dd></div>
+    <div class="w-stat"><dt>Whole run, up to</dt><dd data-out="total">–</dd></div>
+    <div class="w-stat"><dt>Servings</dt><dd data-out="n">–</dd></div>
+    <div class="w-stat"><dt>One every</dt><dd data-out="every">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg" aria-live="polite"></p>
+  <p class="w-msg" data-out="pre" hidden></p>
+</div>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="carbs"]')) init(el);
+  function init(el) {
+    const q = k => el.querySelector(`[data-in="${k}"]`), out = k => el.querySelector(`[data-out="${k}"]`);
+    // upper guides by duration, from Jeukendrup 2014 (claim F4)
+    const guide = h => (h < 1 ? 0 : h < 2 ? 30 : h < 2.5 ? 60 : 90);
+    function run() {
+      const hrs = (+q('h').value || 0) + (+q('m').value || 0) / 60, g = +q('g').value || 0, kg = +q('kg').value || 0;
+      const msg = out('msg'), pre = out('pre');
+      const dash = () => ['rate', 'total', 'n', 'every'].forEach(k => (out(k).textContent = '–'));
+      if (!(hrs > 0) || hrs > 12) { dash(); msg.textContent = 'Enter a time between a few minutes and 12 hours.'; delete msg.dataset.tone; pre.hidden = true; return; }
+      const rate = guide(hrs);
+      if (rate === 0) {
+        dash(); out('rate').innerHTML = '0<small>g</small>';
+        msg.dataset.tone = 'ok';
+        msg.textContent = 'Under an hour, you need little or no carbohydrate during the run. Eating normally beforehand is enough for most runs this long.';
+      } else {
+        const total = rate * hrs;
+        out('rate').innerHTML = `${rate}<small>g</small>`;
+        out('total').innerHTML = `${Math.round(total)}<small>g</small>`;
+        if (g >= 5) {
+          const n = Math.max(1, Math.round(total / g));
+          out('n').textContent = String(n);
+          out('every').innerHTML = `${Math.round(60 * g / rate)}<small>min</small>`;
+        } else { out('n').textContent = '–'; out('every').textContent = '–'; }
+        msg.dataset.tone = rate > 60 ? 'big' : 'ok';
+        msg.textContent = rate > 60
+          ? 'Up to 90 g an hour is a guide for long efforts. Above about 60 g an hour you need a glucose and fructose mix (check the label), and practice: build up to it in long training runs. If you have never taken much, start nearer 30 to 60 g.'
+          : `Up to ${rate} g an hour is a guide for an effort this long. A common approach is to start early and keep it steady, in small amounts. Try it in training first, never for the first time on race day.`;
+      }
+      if (kg >= 25 && hrs >= 1) {
+        pre.hidden = false;
+        pre.textContent = `Before: for runs over an hour, the guide is about 1 to 4 g of carbohydrate per kg eaten 1 to 4 hours before, so about ${Math.round(kg)} to ${Math.round(4 * kg)} g for you.`;
+      } else pre.hidden = true;
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>
