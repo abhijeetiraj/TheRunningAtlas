@@ -14,7 +14,8 @@ import '../styles/global.css';
 import { SITE, BASE, JEZERO, NAV, PREVIEW, SECTIONS, href } from '../data/site.js';
 import { marsSun } from '../lib/mars.js';
 
-const { title, description = SITE.description } = Astro.props;
+// search={false} leaves a page out of the site search (Pagefind indexes only <main data-pagefind-body>).
+const { title, description = SITE.description, search = true } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.name} · ${BASE.name}` : `${SITE.name}: ${SITE.tagline} · ${BASE.name}`;
 const here = Astro.url.pathname.replace(/\/?$/, '/');
 // Canonical and social tags need the site's address (SITE_URL at build time).
@@ -66,7 +67,7 @@ const skyScript = `(function(){var d=document.documentElement,s=null;try{s=local
       {PREVIEW && <span class="preview-chip">Preview</span>}
     </div>
   </header>
-  <main id="main" tabindex="-1">
+  <main id="main" tabindex="-1" data-pagefind-body={search ? '' : undefined}>
     <slot />
   </main>
   <footer class="foot">

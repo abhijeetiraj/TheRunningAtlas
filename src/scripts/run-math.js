@@ -37,3 +37,10 @@ export const fmtPace = sec => fmtClock(sec);
 export const kmh = secPerKm => 3600 / secPerKm;
 
 export const round = (x, d = 1) => Math.round(x * 10 ** d) / 10 ** d;
+
+/** Energy cost of running, J per kg per m, on gradient i (a fraction): the curve as widely quoted from Minetti et al.
+ *  2002 (claim H17, a model). */
+export const hillCost = i => 155.4 * i ** 5 - 30.4 * i ** 4 - 43.3 * i ** 3 + 46.3 * i ** 2 + 19.5 * i + 3.6;
+
+/** Riegel: time at distance d2 from time t1 at d1 (claim P3). */
+export const riegel = (t1, d1, d2, k = 1.06) => t1 * Math.pow(d2 / d1, k);

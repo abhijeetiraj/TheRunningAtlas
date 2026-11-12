@@ -1,0 +1,80 @@
+---
+// Fuel planner: a race-day schedule from the carbohydrate guides by duration (claim F4). The planner itself is
+// arithmetic (claim P7, a model). The rate starts at the guide, or at 60 g an hour if the guide is higher, because more
+// than that needs a glucose and fructose mix and a trained gut (claims F4, F5). You can move it either way.
+---
+<div class="widget" data-widget="racefuel">
+  <h3 class="widget-h">Race fuel planner</h3>
+  <p class="fine">Your expected finishing time and race distance, and the carbohydrate in one of your gels, chews or drink servings (it's on the label). Example values filled in.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Expected time</span><span class="w-time"><input class="w-in" type="number" inputmode="numeric" min="0" max="12" value="4" data-in="h" aria-label="Hours" />h<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="15" data-in="m" aria-label="Minutes" />m</span></label>
+    <label class="w-field"><span>Distance, km</span><input class="w-in" type="number" inputmode="decimal" min="1" max="200" step="0.1" value="42.2" data-in="km" /></label>
+    <label class="w-field"><span>Carbs per serving, g</span><input class="w-in" type="number" inputmode="numeric" min="5" max="120" value="25" data-in="g" /></label>
+  </div>
+  <div class="w-row rf-rate">
+    <label class="w-field rf-slider"><span>Your rate: <strong data-out="rateLbl">60 g an hour</strong></span><input type="range" min="0" max="90" step="5" value="60" data-in="rate" /></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Guide, up to</dt><dd data-out="guide">–</dd></div>
+    <div class="w-stat"><dt>Whole race</dt><dd data-out="total">–</dd></div>
+    <div class="w-stat"><dt>Servings</dt><dd data-out="n">–</dd></div>
+    <div class="w-stat"><dt>One every</dt><dd data-out="every">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg" aria-live="polite"></p>
+  <div class="w-scroll rf-table"><table class="w-table"><thead><tr><th scope="col">Serving</th><th scope="col">Time into the race</th><th scope="col">About km</th></tr></thead><tbody data-out="rows"></tbody></table></div>
+</div>
+
+<style>
+  .rf-slider { flex: 1 1 280px; }
+  .rf-slider input { width: 100%; }
+  .rf-table { max-height: 460px; overflow: auto; }
+</style>
+
+<script>
+  import { fmtClock } from '../../scripts/run-math.js';
+  for (const el of document.querySelectorAll('[data-widget="racefuel"]')) init(el);
+  function init(el) {
+    const q = k => el.querySelector(`[data-in="${k}"]`), out = k => el.querySelector(`[data-out="${k}"]`);
+    // upper guides by duration, from Jeukendrup 2014 (claim F4)
+    const guide = h => (h < 1 ? 0 : h < 2 ? 30 : h < 2.5 ? 60 : 90);
+    let touched = false;
+    q('rate').addEventListener('input', () => { touched = true; });
+    function run() {
+      const hrs = (+q('h').value || 0) + (+q('m').value || 0) / 60, km = +q('km').value, g = +q('g').value;
+      const msg = out('msg'), rows = out('rows');
+      const dash = () => { ['guide', 'total', 'n', 'every'].forEach(k => (out(k).textContent = '–')); rows.innerHTML = ''; };
+      if (!(hrs > 0.25 && hrs <= 12) || !(km >= 1) || !(g >= 5)) { dash(); msg.dataset.tone = 'big'; msg.textContent = 'Enter a time from 15 minutes to 12 hours, a distance, and at least 5 g per serving.'; return; }
+      const gd = guide(hrs);
+      if (!touched) q('rate').value = String(Math.min(gd, 60));
+      const rate = +q('rate').value;
+      out('rateLbl').textContent = `${rate} g an hour`;
+      out('guide').innerHTML = `${gd}<small>g/h</small>`;
+      if (rate === 0) {
+        out('total').innerHTML = '0<small>g</small>'; out('n').textContent = '0'; out('every').textContent = '–'; rows.innerHTML = '';
+        msg.dataset.tone = 'ok';
+        msg.textContent = gd === 0 ? 'Under an hour, the guide says you need little or no carbohydrate during the race.' : 'No carbohydrate during the race. For a race this long, the guide suggests some: try it in training.';
+        return;
+      }
+      const every = 60 * g / rate;                         // minutes between servings
+      const first = Math.min(30, every), endBy = hrs * 60 - 15;
+      const times = [];
+      for (let t = first; t <= endBy + 1e-6 && times.length < 60; t += every) times.push(t);
+      const total = times.length * g;
+      out('total').innerHTML = `${Math.round(total)}<small>g</small>`;
+      out('n').textContent = String(times.length);
+      out('every').innerHTML = `${Math.round(every)}<small>min</small>`;
+      const pace = hrs * 60 / km;                             // minutes per km
+      rows.innerHTML = times.map((t, i) => `<tr><td>${i + 1}</td><td>${fmtClock(t * 60)}</td><td>${(t / pace).toFixed(1)}</td></tr>`).join('') || '<tr><td colspan="3">None: the race is too short for a serving at this rate.</td></tr>';
+      const notes = [];
+      if (gd === 0) notes.push('Under an hour, the guide says you need little or no carbohydrate during the race.');
+      else if (rate > gd) notes.push(`That's above the guide of up to ${gd} g an hour for a race this long.`);
+      if (rate > 60) notes.push('Above about 60 g an hour you need a glucose and fructose mix (check the label), and practice: build up to it on long runs.');
+      else if (gd > 60) notes.push(`The guide goes up to ${gd} g an hour for a race this long, but above about 60 you need a glucose and fructose mix and practice. Move the slider up if you've trained for it.`);
+      notes.push('Many gels say to take them with water, so check the label. Line servings up with aid stations where you can, and practise the whole plan in training first.');
+      msg.dataset.tone = rate > gd || rate > 60 ? 'big' : 'ok';
+      msg.textContent = notes.join(' ');
+    }
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>

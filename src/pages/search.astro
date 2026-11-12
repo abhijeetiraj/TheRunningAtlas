@@ -1,0 +1,101 @@
+---
+// Site search. The index is built by Pagefind after `astro build` (see pagefind.yml) into /pagefind/. The script finds
+// the bundle relative to this page, so search works at the site root, under /running/ on Jezero Base, and in a
+// relinked preview. ?q= fills the box, so a search can be shared as a link.
+import Base from '../layouts/Base.astro';
+import { SECTIONS } from '../data/site.js';
+const sections = Object.fromEntries(SECTIONS.map(s => [s.slug, `Section ${s.n} · ${s.title}`]));
+---
+<Base title="Search" description="Search every page of The Running Atlas." search={false}>
+  <header class="page-head wrap">
+    <h1 class="display page-title">Search the atlas</h1>
+    <p class="lede">Every page, from your first run to the science of the stride. Try a word like “taper”, “shin”, “cadence” or “gels”.</p>
+  </header>
+
+  <div class="wrap" data-search data-sections={JSON.stringify(sections)}>
+    <form class="sr-form" role="search" method="get">
+      <label class="vh" for="sr-q">Search the atlas</label>
+      <svg class="sr-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2" /><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+      <input id="sr-q" class="sr-in" type="search" name="q" autocomplete="off" spellcheck="false" placeholder="Search" />
+    </form>
+    <p class="sr-status" aria-live="polite"></p>
+    <ol class="sr-list"></ol>
+  </div>
+</Base>
+
+<style>
+  .sr-form { position: relative; max-width: 720px; margin: 8px 0 14px; }
+  .sr-icon { position: absolute; left: 16px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%); color: var(--ink-2); pointer-events: none; }
+  .sr-in { width: 100%; height: 54px; padding: 0 18px 0 48px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); font: 500 18px/1 var(--f-body); }
+  .sr-in:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .sr-in::-webkit-search-cancel-button { cursor: pointer; }
+  .sr-status { margin: 0 0 18px; font: 500 12px/1.4 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); min-height: 1.4em; }
+  .sr-list { list-style: none; margin: 0 0 64px; padding: 0; max-width: 760px; display: grid; gap: 12px; }
+  .sr-list :global(li) { margin: 0; }
+  .sr-list :global(a.sr-hit) { display: block; padding: 16px 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); color: var(--ink); text-decoration: none; }
+  .sr-list :global(a.sr-hit:hover) { border-color: var(--line-strong); background: var(--hover); }
+  .sr-list :global(a.sr-hit:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .sr-list :global(.sr-sec) { display: block; font: 500 10.5px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+  .sr-list :global(.sr-t) { display: block; font: 700 22px/1.15 var(--f-display); text-transform: uppercase; letter-spacing: .02em; margin-bottom: 6px; }
+  .sr-list :global(.sr-x) { display: block; font-size: 16px; line-height: 1.55; color: var(--ink-2); overflow-wrap: anywhere; }
+  .sr-list :global(mark) { background: color-mix(in srgb, var(--accent) 28%, transparent); color: var(--ink); border-radius: 3px; padding: 0 2px; }
+</style>
+
+<script>
+  for (const el of document.querySelectorAll('[data-search]')) init(el);
+  function init(el) {
+    const SECTIONS = JSON.parse(el.dataset.sections || '{}');
+    const input = el.querySelector('.sr-in'), status = el.querySelector('.sr-status'), list = el.querySelector('.sr-list');
+    // This page is <root>/search/, so the atlas's root and the search bundle are found relative to it.
+    const root = new URL('../', location.href);
+    const preview = /\/index\.html$/.test(location.pathname); // a relinked preview links to index.html files
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    let pf = null, seq = 0;
+
+    async function load() {
+      if (pf !== null) return pf;
+      try {
+        pf = await import(/* @vite-ignore */ new URL('pagefind/pagefind.js', root).href);
+        await pf.options({ baseUrl: '/', excerptLength: 26 });
+      } catch (e) { pf = false; }
+      return pf;
+    }
+    const pageUrl = u => {
+      const [path, hash] = u.split('#');
+      let p = path.replace(/^\//, '');
+      if (preview && (p === '' || p.endsWith('/'))) p += 'index.html';
+      return new URL(p, root).href + (hash ? `#${hash}` : '');
+    };
+    const sectionOf = u => SECTIONS[u.replace(/^\//, '').split('/')[0]] || 'The Running Atlas';
+
+    async function run() {
+      const q = input.value.trim(), my = ++seq;
+      const url = new URL(location.href);
+      if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
+      try { history.replaceState(null, '', url); } catch (e) { /* a sandboxed preview may refuse */ }
+      if (!q) { list.replaceChildren(); status.textContent = ''; return; }
+      const p = await load();
+      if (my !== seq) return;
+      if (!p) { list.replaceChildren(); status.textContent = 'Search isn’t available in this copy of the site.'; return; }
+      status.textContent = 'Searching…';
+      const res = await p.debouncedSearch(q, {}, 180);
+      if (res === null || my !== seq) return;
+      const top = await Promise.all(res.results.slice(0, 20).map(r => r.data()));
+      if (my !== seq) return;
+      const n = res.results.length;
+      status.textContent = n ? `${n} ${n === 1 ? 'page' : 'pages'} for “${q}”${n > 20 ? ', best 20 shown' : ''}` : `Nothing found for “${q}”. Try a shorter or different word.`;
+      list.replaceChildren(...top.map(d => {
+        const li = document.createElement('li'), a = document.createElement('a');
+        a.className = 'sr-hit'; a.href = pageUrl(d.url);
+        a.innerHTML = `<span class="sr-sec">${esc(sectionOf(d.url))}</span><span class="sr-t">${esc(d.meta?.title || 'Untitled')}</span><span class="sr-x">${d.excerpt}</span>`;
+        li.append(a); return li;
+      }));
+    }
+
+    el.querySelector('form').addEventListener('submit', e => { e.preventDefault(); run(); });
+    input.addEventListener('input', run);
+    const q0 = new URL(location.href).searchParams.get('q');
+    if (q0) { input.value = q0; run(); }
+    input.focus({ preventScroll: true });
+  }
+</script>

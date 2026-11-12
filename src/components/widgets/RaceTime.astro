@@ -1,0 +1,58 @@
+---
+// Race-time estimator: the Riegel formula (claim P3) from one race to the standard distances, with paces.
+// It says plainly that marathon predictions from shorter races tend to be too fast (claim P4).
+import { RACES } from '../../scripts/run-math.js';
+---
+<div class="widget" data-widget="racetime">
+  <h3 class="widget-h">Race-time estimator</h3>
+  <p class="fine">A recent race you ran all out, and its time. Example values filled in. The estimates assume you train for the new distance.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Race you ran</span>
+      <select class="w-in" data-in="race">
+        {RACES.map(r => <option value={r.id} selected={r.id === '10k'}>{r.label}</option>)}
+        <option value="custom">Other distance</option>
+      </select>
+    </label>
+    <label class="w-field rt-custom" hidden><span>Distance, km</span><input class="w-in" type="number" inputmode="decimal" min="1" max="100" step="0.1" value="15" data-in="km" /></label>
+    <label class="w-field"><span>Your time</span><span class="w-time"><input class="w-in" type="number" inputmode="numeric" min="0" max="9" value="0" data-in="h" aria-label="Hours" />h<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="52" data-in="m" aria-label="Minutes" />m<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="30" data-in="s" aria-label="Seconds" />s</span></label>
+  </div>
+  <div class="w-scroll rt-table"><table class="w-table"><thead><tr><th scope="col">Distance</th><th scope="col">Estimate</th><th scope="col">Pace per km</th><th scope="col">Pace per mile</th></tr></thead><tbody data-out="rows"></tbody></table></div>
+  <p class="w-msg" data-out="msg" aria-live="polite"></p>
+</div>
+
+<style>
+  .rt-custom[hidden] { display: none; }
+  .rt-table :global(tr.is-you td) { font-weight: 700; }
+  .rt-table :global(td:first-child) { font-family: var(--f-body); }
+</style>
+
+<script>
+  import { RACES, KM_PER_MI, fmtClock, fmtPace, riegel } from '../../scripts/run-math.js';
+  for (const el of document.querySelectorAll('[data-widget="racetime"]')) init(el);
+  function init(el) {
+    const q = k => el.querySelector(`[data-in="${k}"]`), out = k => el.querySelector(`[data-out="${k}"]`);
+    const custom = el.querySelector('.rt-custom');
+    function run() {
+      const id = q('race').value;
+      custom.hidden = id !== 'custom';
+      const km = id === 'custom' ? +q('km').value : RACES.find(r => r.id === id).km;
+      const t = (+q('h').value || 0) * 3600 + (+q('m').value || 0) * 60 + (+q('s').value || 0);
+      const msg = out('msg');
+      if (!(km >= 1 && km <= 100) || !(t > 0) || t / km < 150 || t / km > 1200) {
+        out('rows').innerHTML = ''; msg.dataset.tone = 'big';
+        msg.textContent = 'Enter a distance from 1 to 100 km and a time that works out between 2:30 and 20:00 per km.'; return;
+      }
+      out('rows').innerHTML = RACES.map(r => {
+        const est = riegel(t, km, r.km), you = Math.abs(r.km - km) < 0.01;
+        return `<tr class="${you ? 'is-you' : ''}"><td>${r.label}${you ? ' (yours)' : ''}</td><td>${fmtClock(est)}</td><td>${fmtPace(est / r.km)}</td><td>${fmtPace(est / r.km * KM_PER_MI)}</td></tr>`;
+      }).join('');
+      const mar = riegel(t, km, 42.195);
+      if (km < 30) {
+        msg.dataset.tone = 'big';
+        msg.textContent = `Treat the marathon estimate (${fmtClock(mar)}) as a best case. Predictions from shorter races tend to be too fast for the marathon, so a slower target is sensible, especially for a first one.`;
+      } else { msg.dataset.tone = 'ok'; msg.textContent = 'Estimates for much shorter races assume you also train for speed, not just endurance.'; }
+    }
+    el.querySelectorAll('input, select').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>

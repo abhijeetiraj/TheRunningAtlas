@@ -1,0 +1,42 @@
+---
+title: Race-time estimator
+summary: Turn one race result into estimates for the 5K, 10K, half marathon and marathon, using the Riegel formula. It works well up to the half marathon, but its marathon estimates from shorter races tend to be too fast, so treat those as a best case.
+description: A race-time predictor using the Riegel formula. Estimate your 5K, 10K, half marathon and marathon times from one recent race, with paces, and see where the formula goes wrong.
+inShort:
+  - The Riegel formula multiplies your time by the ratio of the distances to the power 1.06.
+  - It predicted times well up to the half marathon in a survey of recreational runners.
+  - It predicted marathon times that were too fast, by at least 10 minutes for half of those runners.
+read: 4
+kind: tool
+updated: 2026-11-12
+---
+import Cite from '../../../components/Cite.astro';
+import Box from '../../../components/Box.astro';
+import TopicLink from '../../../components/TopicLink.astro';
+import RaceTime from '../../../components/widgets/RaceTime.astro';
+
+<RaceTime />
+
+## How it works
+
+In 1981, Peter Riegel fitted a simple power law to world-record times at distances lasting from about 3.5 minutes to nearly 4 hours<Cite id="P3" />:
+
+<p class="formula"><span>new time</span><span>=</span><span>known time × (new distance ÷ known distance)<sup>1.06</sup></span></p>
+
+The power of 1.06 means each doubling of distance slows your average pace by about 4%. The estimator applies it to the race you enter, then works out the pace for each distance<Cite id="P5" />. For example, a 52:30 10K gives about 1:56 for a half marathon and about 4:02 for a marathon.
+
+## Where it goes wrong
+
+The formula came from world records, set by runners trained for each distance. In a survey of 2,303 recreational runners, it predicted times well up to the half marathon, but its marathon predictions were too fast: by at least 10 minutes for half of the runners<Cite id="P4" />.
+
+So:
+
+- **Treat a marathon estimate from a shorter race as a best case**, especially for a first marathon. See <TopicLink to="racing/pacing">pacing</TopicLink>.
+- **Use a recent, all-out race** on a similar course. A hilly or hot race will make the estimates slower.
+- **Remember it assumes you train for the new distance.** A good 10K doesn't give you a marathon without the long runs. See <TopicLink to="training/plans">plans from 5K to marathon</TopicLink>.
+
+<Box kind="try">
+
+Once you have a target, the <TopicLink to="tools/pace-calculator">pace calculator</TopicLink> gives you even splits, and the <TopicLink to="racing/pacing">course fly-over</TopicLink> shows how a plan changes on hills.
+
+</Box>

@@ -1,0 +1,79 @@
+---
+// The Course fly-over: a made-up course in 3D with a pacing plan that keeps effort steady over the hills
+// (src/lib/course.js, claim C5). The chart and splits work without WebGL.
+import Cite from '../Cite.astro';
+import { COURSES } from '../../data/courses.js';
+---
+<section class="lab-shell" id="lab" aria-label="Course fly-over">
+  <div class="wrap lab-grid">
+    <div class="lab-main">
+      <div class="lab-title"><span class="label">3D lab</span><h2 class="h2">Course fly-over</h2></div>
+      <p class="cf-intro">Pick a course and a finishing time, then fly over it. The plan keeps your effort steady: slower up the hills, a little faster down them<Cite id="C5" /><Cite id="H17" />. The courses are made up, and the hills are drawn six times taller than they are.</p>
+      <div class="stage-wrap">
+        <div class="stage stage-wide" id="courseStage">
+          <div class="hud hud-tl" aria-live="polite"><span class="hud-k" data-out="km">km 0.0</span><span class="hud-big" data-out="pace">–</span><span class="hud-sub" data-out="grade"></span></div>
+          <div class="hud hud-tr"><span class="tele" data-out="clock"></span></div>
+        </div>
+        <div class="legend" aria-hidden="true"><span class="label">Legend</span><span class="lg lg-cf-done">Covered so far</span><span class="lg lg-cf-road">Course</span><span class="lg lg-cf-post">Kilometre posts</span></div>
+      </div>
+      <div class="controls">
+        <div class="ctl-row">
+          <button class="btn-play" data-act="play" aria-label="Play"></button>
+          <div class="seg" role="group" aria-label="Camera">
+            <button data-view="follow" aria-pressed="true">Follow the runner</button><button data-view="whole" aria-pressed="false">Whole course</button>
+          </div>
+        </div>
+        <div class="ctl-grid">
+          <div class="ctl">
+            <span class="ctl-label" id="cfCourseLbl">Course</span>
+            <div class="seg" role="group" aria-labelledby="cfCourseLbl">
+              {COURSES.map((c, i) => <button data-course={i} aria-pressed={String(i === 1)}>{c.short}</button>)}
+            </div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" id="cfTimeLbl">Finishing time <output data-out="time"></output></span>
+            <span class="w-time" role="group" aria-labelledby="cfTimeLbl"><input class="w-in" type="number" inputmode="numeric" min="0" max="9" value="2" data-in="h" aria-label="Hours" />h<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="0" data-in="m" aria-label="Minutes" />m</span>
+          </div>
+          <div class="ctl cf-wide">
+            <label for="courseScrub" class="ctl-label">Where on the course <output data-out="where" for="courseScrub"></output></label>
+            <input type="range" id="courseScrub" min="0" max="1000" step="1" value="0" />
+          </div>
+        </div>
+        <p class="w-msg" data-out="msg" hidden></p>
+        <p class="fine" data-out="blurb"></p>
+      </div>
+      <div class="chart-card cf-chart">
+        <h3 class="side-h">Hills and planned pace</h3>
+        <p class="fine">Shaded: height above sea level. Line: the planned pace for each stretch, faster higher up, with even pace dashed. Tap or drag to move the runner.</p>
+        <canvas data-out="chart" role="img" aria-label="Chart of the course's height and the planned pace along it"></canvas>
+      </div>
+    </div>
+    <aside class="lab-side">
+      <h3 class="side-h">This course, in numbers</h3>
+      <dl class="readouts" data-out="readouts"></dl>
+      <p class="fine">A model, not a promise. It keeps the energy cost per minute steady using a curve from treadmill tests on slopes, caps the downhill gain at 8%, and ignores wind, heat, turns and tiredness<Cite id="C5" />.</p>
+      <details class="cf-splits">
+        <summary>Splits for every kilometre</summary>
+        <div class="w-scroll"><table class="w-table"><thead><tr><th scope="col">km</th><th scope="col">Up / down</th><th scope="col">Pace</th><th scope="col">Clock</th></tr></thead><tbody data-out="splits"></tbody></table></div>
+      </details>
+    </aside>
+  </div>
+</section>
+
+<style is:global>
+  .cf-intro { margin: -4px 0 14px; max-width: 70ch; color: var(--ink-2); }
+  .cf-wide { grid-column: 1 / -1; }
+  .cf-chart { margin-top: 14px; padding: 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--card); }
+  .cf-chart canvas { height: 200px; touch-action: none; cursor: crosshair; }
+  .cf-splits { margin-top: 14px; }
+  .cf-splits summary { cursor: pointer; font: 500 12px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; }
+  .cf-splits .w-scroll { margin-top: 10px; max-height: 360px; overflow: auto; }
+  .lg-cf-done::before { background: #ff6a3d; }
+  .lg-cf-road::before { background: #efe6da; outline: 1px solid var(--line-strong); }
+  .lg-cf-post::before { width: 3px; height: 12px; border-radius: 1px; background: #f4efe6; outline: 1px solid var(--line-strong); }
+</style>
+
+<script>
+  import { initCourseLab } from '../../scripts/labs/course.js';
+  initCourseLab(document.getElementById('lab'));
+</script>

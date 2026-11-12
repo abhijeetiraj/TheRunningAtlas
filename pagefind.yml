@@ -1,0 +1,20 @@
+# Site search (Pagefind), run after `astro build` by the build scripts. It indexes the <main> of each page
+# (Base.astro marks it with data-pagefind-body), leaving out navigation, the tools' controls, each page's ledger table and
+# the topic summaries repeated on section pages (so a search finds the topic itself first).
+site: dist
+exclude_selectors:
+  - ".crumbs"
+  - ".meta"
+  - ".rail"
+  - ".pager"
+  - ".cite"
+  - ".draft-note"
+  - ".widget"
+  - ".controls"
+  - ".hud"
+  - ".legend"
+  - ".readouts"
+  - "#evidence"
+  - ".topic-sum"
+  - ".topic-tags"
+  - ".sp-state"

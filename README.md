@@ -14,8 +14,13 @@ This is the **preview edition**. Pages carry `noindex`, nothing is deployed, and
 | The running stride | `/how-running-works/stride/` | 3D stride lab: scrub, slow motion, speed, foot strike, views, ground force chart, cadence tools |
 | Warm-up studio | `/strength-mobility-drills/warm-up/` | Nine dynamic warm-up moves in 3D with the muscles they move |
 | Evidence ledger | `/library/evidence/` | Every claim on the site, its source and its grade |
+| Search | `/search/` | Searches every live page (Pagefind); `?q=` fills the box, so a search can be shared |
 
-Written so far: all of **Start running** (nine topics, three of them in clinician review), and the **pace calculator** and **cadence counter** in Tools.
+Written so far: every topic in all eleven sections (74 topic pages), except **Videos from the channel**, which waits
+for the channel's links. 25 of them are health pages in clinician review: they are built only by `npm run build:review`
+and show as "In clinician review" on the live site. Nine 3D labs: the stride lab and warm-up studio (hand-built pages),
+and the Spring lab, Shoe cut-away, Oxygen journey, Muscle fibres, Strength library, Injury body map and Course fly-over
+(embedded in their topic pages).
 
 ## Run it
 
@@ -24,7 +29,8 @@ Needs Node 22.23.4 or newer (see `.nvmrc`).
 ```sh
 npm ci
 npm run dev           # http://localhost:4321
-npm run build         # static site in dist/, then a check that every internal link and #anchor resolves
+npm run build         # static site in dist/, the search index (dist/pagefind/), then a check that every internal
+                      # link and #anchor resolves
 npm run build:review  # the same, plus the health pages still in clinician review (for the review preview)
 npm run preview       # serve dist/
 ```
@@ -50,6 +56,9 @@ Always build links with `href('/path/')` from `src/data/site.js` so they follow 
   collection (`src/content.config.js`): one `.mdx` file per topic in `src/content/topics/<section>/<topic>.mdx`.
 - **The site map** is `SECTIONS` in `src/data/site.js`: sections and topics in reading order. A topic's page appears
   as soon as its `.mdx` file exists; `src/lib/atlas.js` joins the two and works out each topic's state.
+- **[Pagefind](https://pagefind.app)** builds the search index after `astro build` (settings in `pagefind.yml`). It
+  indexes each page's `<main data-pagefind-body>`; pass `search={false}` to `Base.astro` to leave a page out. The
+  search page finds the index relative to itself, so it works at the root, under `/running/` and in a relinked preview.
 - Dependencies are pinned to exact versions.
 
 ```
@@ -62,7 +71,7 @@ src/
                  live), widgets/ (calculators, planners and timers used in articles), labs/ (3D labs embedded in topic pages)
   articles/      MDX prose for each page
   data/          site.js (sections, nav), claims.js + claims/<section>.js (evidence ledger), runwalk.js
-                 (the example run-walk plan), warmup-moves.js
+                 (the example run-walk plan), warmup-moves.js, courses.js (the Course fly-over's made-up courses)
   lib/atlas.js   the site map joined with the topic pages that exist
   scripts/       client code for each page (home, stride, warmup) and each embedded lab (labs/), shared ui.js and
                  sky.js (Day/Dusk)
@@ -71,6 +80,7 @@ src/
                  stage.js (renderer, camera, floor, force arrow), theme.js (Mars colours for Day and Dusk),
                  mini.js (a small studio stage for the embedded labs)
   lib/springmass.js  the spring-mass model behind the Spring lab
+  lib/course.js  the Course fly-over's even-effort pacing plan (scripts/plan.js is the plan builder's rule)
   styles/        global.css: the Jezero Base look, Day and Dusk
 ```
 
