@@ -457,6 +457,10 @@ a.topic-in:hover .topic-title { color: var(--accent); }
 .prose td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .prose .table-scroll { overflow-x: auto; margin: 0 0 22px; }
 .prose .table-scroll table { margin: 0; min-width: 520px; }
+.prose .gloss { margin: 0 0 26px; }
+.prose .gloss dt { font: 600 18px/1.3 var(--f-body); margin: 18px 0 4px; scroll-margin-top: 100px; }
+.prose .gloss dt:first-child { margin-top: 0; }
+.prose .gloss dd { margin: 0; font-size: 17.5px; line-height: 1.65; color: var(--ink); }
 .box { margin: 22px 0 24px; padding: 14px 18px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
 .box-k { margin: 0 0 6px !important; font: 500 11px/1.3 var(--f-mono) !important; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
 .box p:last-child, .box ul:last-child { margin-bottom: 0; }

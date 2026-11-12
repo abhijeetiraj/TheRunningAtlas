@@ -177,7 +177,7 @@ export const LABS = [
   { name: 'Muscle fibres', what: 'Look inside a calf muscle and watch slow and fast fibres switch on as effort rises.', topic: 'the-engine/muscle-fibres', section: 3 },
   { name: 'Strength library', what: 'Eight strength exercises for runners on the 3D runner, with the muscles each one works.', topic: 'strength-mobility-drills/strength-training', section: 5 },
   { name: 'Injury body map', what: 'Pick an area on the 3D runner to read about the running injury usually felt there, and when to get it checked.', topic: 'injuries-health/soreness-or-pain', section: 7 },
-  { name: 'Course fly-over', what: 'Fly over a race course with its hills and a pacing plan.', section: 9 },
+  { name: 'Course fly-over', what: 'Fly over a race course with its hills, and see a pacing plan that keeps your effort steady.', topic: 'racing/pacing', section: 9 },
 ];
 
 export const ROADMAP = [
@@ -197,6 +197,7 @@ export const NAV = [
   { label: 'Warm-up studio', href: '/strength-mobility-drills/warm-up/' },
   { label: 'Tools', href: '/tools/' },
   { label: 'Evidence', href: '/library/evidence/' },
+  { label: 'Search', href: '/search/' },
 ];
 
 /** Prefix a site path with the configured base (for hosting under a sub-path, such as GitHub Pages). */

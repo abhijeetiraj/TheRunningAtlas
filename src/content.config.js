@@ -18,7 +18,7 @@ const topics = defineCollection({
     read: z.number().int().positive(),
     kind: z.enum(['article', 'tool', 'lab']).default('article'),
     /** A 3D lab shown above the article (see LAB in src/pages/[section]/[topic].astro). */
-    lab: z.enum(['spring', 'oxygen', 'fibres', 'shoe', 'strength', 'bodymap']).optional(),
+    lab: z.enum(['spring', 'oxygen', 'fibres', 'shoe', 'strength', 'bodymap', 'course']).optional(),
     /**
      * Health pages need a clinician's review before they go live. Until `cleared` is true they are drafts:
      * built only when ATLAS_DRAFTS=1 (the preview for review), and listed elsewhere as "In review".

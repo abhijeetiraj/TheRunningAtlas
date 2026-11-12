@@ -1,0 +1,52 @@
+---
+title: Heart-rate zones
+summary: Work out heart-rate ranges from your resting heart rate and your maximum, using heart rate reserve. A measured maximum beats any formula, and the formulas can easily be 10 or more beats out.
+description: A heart-rate zone calculator using heart rate reserve. Estimate your maximal heart rate with two formulas or enter a measured one, and get light, moderate, vigorous and near-maximal ranges.
+inShort:
+  - Heart rate reserve is your maximal heart rate minus your resting heart rate.
+  - A share of that reserve, added to your resting heart rate, gives a target that fits your own heart.
+  - Formulas for your maximum are rough. If you know your real maximum, use it.
+read: 3
+kind: tool
+updated: 2026-11-12
+---
+import Cite from '../../../components/Cite.astro';
+import Box from '../../../components/Box.astro';
+import TopicLink from '../../../components/TopicLink.astro';
+import HrReserve from '../../../components/widgets/HrReserve.astro';
+
+<HrReserve />
+
+## How it works
+
+The tool needs two numbers: your resting heart rate and your maximal heart rate. Your heart rate reserve is the gap between them, and a target is your resting heart rate plus a share of that gap<Cite id="E16" />:
+
+<p class="formula"><span>target</span><span>=</span><span>resting + share × (maximum − resting)</span></p>
+
+The ranges in the table are the American College of Sports Medicine's: 30 to 39% of your reserve is light, 40 to 59% moderate, 60 to 89% vigorous and 90% or more near maximal<Cite id="E17" />. The slider gives a target for any share in between<Cite id="P8" />.
+
+For example, at age 40 the formula gives a maximum of 208 − 0.7 × 40 = 180. With a resting heart rate of 60, the reserve is 120 beats a minute, so 60% of it is 60 + 72 = 132.
+
+## Your maximum
+
+If you leave the measured maximum empty, the tool uses **208 − 0.7 × age**, from an analysis of 351 studies. Even that formula had a standard error of about 10 beats a minute<Cite id="E15" />, so your real maximum may be well above or below it. The tool shows "220 minus age" for comparison only: it was never an accurate guide for individuals<Cite id="E14" />.
+
+If you have seen your heart rate near its top at the end of a hard race, that number beats any formula.
+
+## Resting heart rate
+
+Measure it lying down, just after you wake. Take a reading on a few mornings and use a typical one.
+
+## Using the ranges
+
+- **Check the ranges against how the effort feels**, for example with the <TopicLink to="start-running/talk-test">talk test</TopicLink>. On days when you are hot, tired, stressed or unwell, the same pace can bring a higher heart rate.
+- **Expect drift on long runs.** Heart rate creeps up over a long, steady run, more in the heat<Cite id="E18" />.
+- **Watch zones may differ.** Watches and plans often use five zones with their own boundaries, so check what yours are based on.
+
+For why all of this works, and how accurate wrist sensors are, see <TopicLink to="the-engine/heart-rate-zones">heart-rate zones</TopicLink> in The engine.
+
+<Box kind="care" title="Stop and seek care now">
+
+Stop running and seek care straight away if your heart races or beats irregularly and doesn't settle when you stop, or comes with chest pain, breathlessness, dizziness or faintness. For chest pain, collapse or confusion, call emergency services. A watch reading can't tell you that you are fine: go by your symptoms. If you have a heart condition or symptoms, check with a doctor before doing an all-out effort to find your maximum. See <TopicLink to="start-running/see-a-doctor-first">when to see a doctor first</TopicLink>.
+
+</Box>

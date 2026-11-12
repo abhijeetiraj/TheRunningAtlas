@@ -6,9 +6,9 @@
   "description": "The Running Atlas: a running guide from first run to the science of the stride, with interactive 3D.",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node tools/check-links.mjs",
-    "build:review": "ATLAS_DRAFTS=1 astro build && node tools/check-links.mjs",
-    "build:jezero": "BASE_PATH=/running/ SITE_URL=https://abhijeeti.dev PUBLIC_HOME_URL= astro build && BASE_PATH=/running/ node tools/check-links.mjs",
+    "build": "astro build && pagefind && node tools/check-links.mjs",
+    "build:review": "ATLAS_DRAFTS=1 astro build && pagefind && node tools/check-links.mjs",
+    "build:jezero": "BASE_PATH=/running/ SITE_URL=https://abhijeeti.dev PUBLIC_HOME_URL= astro build && pagefind && BASE_PATH=/running/ node tools/check-links.mjs",
     "publish:jezero": "npm run build:jezero && node tools/publish-to-base.mjs",
     "preview": "astro preview"
   },
@@ -22,5 +22,8 @@
     "@fontsource/ibm-plex-mono": "5.3.0",
     "astro": "7.4.11",
     "three": "0.169.0"
+  },
+  "devDependencies": {
+    "pagefind": "1.5.2"
   }
 }

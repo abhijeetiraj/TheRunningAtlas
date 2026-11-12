@@ -1,0 +1,61 @@
+---
+// Plan builder: a week-by-week outline of weekly distance and long run, from your current running to race day.
+// It is a rule of thumb (claim P6, a model): at most about 10% more each week, an easier week every fourth week,
+// long runs capped by race distance from common coaching ranges, and a taper at the end (claim T4).
+---
+<div class="widget" data-widget="plan">
+  <h3 class="widget-h">Plan builder</h3>
+  <p class="fine">Your race, how many weeks away it is, and what you run now. Example values filled in. It gives an outline of distances, not the sessions inside each week.</p>
+  <div class="w-row">
+    <label class="w-field"><span>Race</span>
+      <select class="w-in" data-in="race">
+        <option value="5k">5K</option><option value="10k">10K</option><option value="half" selected>Half marathon</option><option value="marathon">Marathon</option>
+      </select>
+    </label>
+    <label class="w-field"><span>Weeks to race</span><input class="w-in" type="number" inputmode="numeric" min="3" max="30" value="12" data-in="weeks" /></label>
+    <label class="w-field"><span>Weekly km now</span><input class="w-in" type="number" inputmode="decimal" min="5" max="200" value="20" data-in="now" /></label>
+    <label class="w-field"><span>Longest run now, km</span><input class="w-in" type="number" inputmode="decimal" min="2" max="45" value="8" data-in="long" /></label>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Biggest week</dt><dd data-out="peak">–</dd></div>
+    <div class="w-stat"><dt>Longest run</dt><dd data-out="peakLong">–</dd></div>
+    <div class="w-stat"><dt>Typical plan length</dt><dd data-out="typical">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg" aria-live="polite"></p>
+  <div class="w-scroll pb-table"><table class="w-table"><thead><tr><th scope="col">Week</th><th scope="col">Weekly km</th><th scope="col">Long run</th><th scope="col">Note</th></tr></thead><tbody data-out="rows"></tbody></table></div>
+</div>
+
+<style>
+  .pb-table :global(td:last-child) { font-family: var(--f-body); }
+  .pb-table :global(tr[data-kind="easy"] td), .pb-table :global(tr[data-kind="taper"] td) { color: var(--ink-2); }
+  .pb-table :global(tr[data-kind="race"] td) { font-weight: 700; }
+</style>
+
+<script>
+  import { buildOutline, PLAN_RACES } from '../../scripts/plan.js';
+  for (const el of document.querySelectorAll('[data-widget="plan"]')) init(el);
+  function init(el) {
+    const q = k => el.querySelector(`[data-in="${k}"]`), out = k => el.querySelector(`[data-out="${k}"]`);
+    function run() {
+      const race = q('race').value, weeks = Math.round(+q('weeks').value), now = +q('now').value, long = +q('long').value;
+      const msg = out('msg'), R = PLAN_RACES[race];
+      out('typical').innerHTML = `${R.weeks[0]}–${R.weeks[1]}<small>weeks</small>`;
+      if (!(weeks >= 3 && weeks <= 30) || !(now >= 5 && now <= 200) || !(long >= 2 && long <= 45)) {
+        out('rows').innerHTML = ''; out('peak').textContent = '–'; out('peakLong').textContent = '–';
+        msg.dataset.tone = 'big'; msg.textContent = 'Enter 3 to 30 weeks, 5 to 200 km a week, and a longest run of 2 to 45 km.'; return;
+      }
+      const p = buildOutline({ race, weeks, now, long });
+      out('peak').innerHTML = `${p.peak}<small>km</small>`;
+      out('peakLong').innerHTML = `${p.peakLong}<small>km</small>`;
+      out('rows').innerHTML = p.rows.map(r => `<tr data-kind="${r.kind}"><td>${r.week}</td><td>${r.km}</td><td>${r.long}</td><td>${r.note}</td></tr>`).join('');
+      const notes = [];
+      if (weeks < R.weeks[0]) notes.push(`That's shorter than typical ${R.label} plans of ${R.weeks[0]} to ${R.weeks[1]} weeks. A later race, or a shorter distance, would give you more room.`);
+      if (p.peakLong < R.long[0]) notes.push(`At this rate, your longest run reaches ${p.peakLong} km, short of the ${R.long[0]} to ${R.long[1]} km typical for a ${R.label}. More weeks would help.`);
+      if (long > now * 0.6) notes.push('Your longest run is a big share of your week. Spreading the distance over more runs is usually kinder on your legs.');
+      msg.dataset.tone = notes.length ? 'big' : 'ok';
+      msg.textContent = notes.length ? notes.join(' ') : 'A gradual build with easier weeks and a taper. Keep most runs easy, and adjust when life or your body says so.';
+    }
+    el.querySelectorAll('input, select').forEach(i => i.addEventListener('input', run));
+    run();
+  }
+</script>

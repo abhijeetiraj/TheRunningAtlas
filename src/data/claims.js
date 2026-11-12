@@ -15,7 +15,9 @@ import { CLAIMS as STRENGTH } from './claims/strength-mobility-drills.js';
 import { CLAIMS as FUEL } from './claims/fuel-recovery.js';
 import { CLAIMS as INJ } from './claims/injuries-health.js';
 import { CLAIMS as DIFF } from './claims/different-runners.js';
+import { CLAIMS as RACING } from './claims/racing.js';
 import { CLAIMS as TOOLS } from './claims/tools.js';
+import { CLAIMS as LIB } from './claims/library.js';
 
 export const GRADES = {
   checked: { label: 'Checked', text: 'The exact supporting passage was read in the full source and recorded with its limits.' },
@@ -63,7 +65,7 @@ const CORE = [
   { id: 'W5', page: 'warmup', grade: 'abstract', claim: 'Pooling 25 trials (26,610 people), stretching programmes showed no clear protective effect; strength training programmes were linked with the biggest drop in injuries.', src: 'Lauersen et al. 2014, Br J Sports Med 48:871-877' },
 ];
 
-export const CLAIMS = [...CORE, ...START, ...HOW, ...ENGINE, ...TRAINING, ...STRENGTH, ...FUEL, ...INJ, ...DIFF, ...TOOLS];
+export const CLAIMS = [...CORE, ...START, ...HOW, ...ENGINE, ...TRAINING, ...STRENGTH, ...FUEL, ...INJ, ...DIFF, ...RACING, ...TOOLS, ...LIB];
 
 
 // ---- build-time checks
