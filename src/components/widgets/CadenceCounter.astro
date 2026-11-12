@@ -1,0 +1,123 @@
+---
+// Cadence counter: tap along with your steps, or count for 30 seconds; a metronome to practise a cadence;
+// and step length from your pace and cadence.
+---
+<div class="widget cad" data-widget="cadence">
+  <h3 class="widget-h">Count your cadence</h3>
+  <p class="fine">Two ways. On a treadmill, tap each time a foot lands. Running outside, start the 30-second count, count every step, and type in the number.</p>
+  <div class="cad-grid">
+    <div class="cad-box">
+      <p class="w-k">Tap along</p>
+      <button type="button" class="tap cad-tap" data-act="tap">Tap each time a foot lands</button>
+      <p class="tool-out" aria-live="polite"><span class="num cad-num" data-out="tap">–</span> <span>steps per minute</span></p>
+      <button type="button" class="linkish" data-act="tapreset">Start again</button>
+    </div>
+    <div class="cad-box">
+      <p class="w-k">Count for 30 seconds</p>
+      <div class="w-btns"><button type="button" class="w-btn" data-act="count">Start 30 seconds</button></div>
+      <p class="cad-clock num" data-out="clock" aria-live="polite">0:30</p>
+      <label class="w-field"><span>Steps counted</span><input class="w-in" type="number" inputmode="numeric" min="0" max="200" data-in="steps" /></label>
+      <p class="tool-out"><span class="num cad-num" data-out="count">–</span> <span>steps per minute</span></p>
+    </div>
+  </div>
+
+  <div class="cad-box cad-metro">
+    <p class="w-k">Metronome</p>
+    <p class="fine">Run to a beat. Changing cadence is best done in small steps of about 5%, if at all.</p>
+    <div class="w-row">
+      <label class="w-field"><span>Beats per minute</span><input class="w-in" type="number" inputmode="numeric" min="120" max="220" value="170" data-in="bpm" /></label>
+      <button type="button" class="w-btn" data-act="metro">Play</button>
+      <button type="button" class="w-btn w-ghost" data-act="plus5">Use my cadence + 5%</button>
+    </div>
+  </div>
+
+  <div class="cad-box">
+    <p class="w-k">Your step length</p>
+    <div class="w-row">
+      <label class="w-field"><span>Pace per km</span><span class="w-time"><input class="w-in" type="number" inputmode="numeric" min="2" max="15" value="6" data-in="pm" aria-label="Pace minutes" />:<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="0" data-in="ps" aria-label="Pace seconds" /></span></label>
+      <label class="w-field"><span>Cadence</span><input class="w-in" type="number" inputmode="numeric" min="120" max="230" value="165" data-in="cad" /></label>
+    </div>
+    <p class="tool-out" data-out="sl" aria-live="polite"></p>
+  </div>
+</div>
+
+<style>
+  .cad-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; margin-top: 14px; }
+  .cad-box { padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); min-width: 0; }
+  .cad-metro, .cad > .cad-box { margin-top: 10px; }
+  .cad-box .w-k { margin: 0 !important; }
+  .cad-num { font: 600 30px/1 var(--f-display); }
+  .cad-clock { margin: 10px 0 !important; font: 600 40px/1 var(--f-display) !important; }
+  .cad-tap { margin-top: 10px; min-height: 90px; }
+  .cad[data-counting] .cad-clock { color: var(--accent); }
+</style>
+
+<script>
+  import { fmtClock, round } from '../../scripts/run-math.js';
+
+  for (const el of document.querySelectorAll('[data-widget="cadence"]')) init(el);
+
+  function init(el) {
+    const q = k => el.querySelector(`[data-in="${k}"]`), out = k => el.querySelector(`[data-out="${k}"]`), act = k => el.querySelector(`[data-act="${k}"]`);
+    let last = null;
+    // ---- tap: the average of the last ten intervals, ignoring pauses
+    let taps = [];
+    act('tap').addEventListener('pointerdown', e => {
+      e.preventDefault();
+      const t = performance.now();
+      if (taps.length && t - taps[taps.length - 1] > 1500) taps = [];
+      taps.push(t); if (taps.length > 11) taps.shift();
+      if (taps.length >= 4) { const spm = Math.round(60000 / ((taps[taps.length - 1] - taps[0]) / (taps.length - 1))); out('tap').textContent = spm; last = spm; }
+      else out('tap').textContent = 'Keep tapping';
+    });
+    act('tap').addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); act('tap').dispatchEvent(new PointerEvent('pointerdown')); } });
+    act('tapreset').addEventListener('click', () => { taps = []; out('tap').textContent = '–'; });
+
+    // ---- 30-second count
+    let timer = null, t0 = 0;
+    const beep = (f = 880) => { try { const a = (el._ac ||= new (window.AudioContext || window.webkitAudioContext)()); const o = a.createOscillator(), g = a.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0.25, a.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.25); o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + 0.3); } catch (e) {} };
+    act('count').addEventListener('click', () => {
+      if (timer) { clearInterval(timer); timer = null; delete el.dataset.counting; act('count').textContent = 'Start 30 seconds'; out('clock').textContent = '0:30'; return; }
+      t0 = performance.now(); el.dataset.counting = ''; act('count').textContent = 'Stop'; beep();
+      timer = setInterval(() => {
+        const left = 30 - (performance.now() - t0) / 1000;
+        if (left <= 0) { clearInterval(timer); timer = null; delete el.dataset.counting; out('clock').textContent = 'Done'; act('count').textContent = 'Start 30 seconds'; beep(520); if (navigator.vibrate) navigator.vibrate(400); q('steps').focus(); return; }
+        out('clock').textContent = fmtClock(Math.ceil(left));
+      }, 100);
+    });
+    q('steps').addEventListener('input', () => { const n = +q('steps').value; out('count').textContent = n > 0 ? n * 2 : '–'; if (n > 0) last = n * 2; });
+
+    // ---- metronome, scheduled ahead on the audio clock so it keeps steady time
+    let metro = null;
+    act('metro').addEventListener('click', () => {
+      if (metro) { clearInterval(metro.id); metro = null; act('metro').textContent = 'Play'; return; }
+      let a; try { a = (el._ac ||= new (window.AudioContext || window.webkitAudioContext)()); } catch (e) { return; }
+      a.resume?.();
+      let next = a.currentTime + 0.05, k = 0;
+      const sched = () => {
+        const bpm = Math.min(220, Math.max(120, +q('bpm').value || 170)), dt = 60 / bpm;
+        while (next < a.currentTime + 0.2) {
+          const o = a.createOscillator(), g = a.createGain();
+          o.frequency.value = k % 2 ? 1320 : 990; g.gain.setValueAtTime(0.2, next); g.gain.exponentialRampToValueAtTime(0.0001, next + 0.05);
+          o.connect(g).connect(a.destination); o.start(next); o.stop(next + 0.06);
+          next += dt; k++;
+        }
+      };
+      metro = { id: setInterval(sched, 50) }; sched();
+      act('metro').textContent = 'Stop';
+    });
+    act('plus5').addEventListener('click', () => {
+      const c = last || +q('cad').value;
+      if (c > 0) q('bpm').value = Math.round(c * 1.05);
+    });
+
+    // ---- step length = speed / steps per second
+    const sl = () => {
+      const pace = (+q('pm').value || 0) * 60 + (+q('ps').value || 0), cad = +q('cad').value;
+      if (!(pace > 0 && cad > 0)) { out('sl').textContent = ''; return; }
+      const v = 1000 / pace, step = v / (cad / 60);
+      out('sl').innerHTML = `<span class="num cad-num">${round(step, 2)}</span> metres per step, at ${round(v, 2)} m/s.`;
+    };
+    ['pm', 'ps', 'cad'].forEach(k => q(k).addEventListener('input', sl)); sl();
+  }
+</script>

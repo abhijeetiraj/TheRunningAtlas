@@ -1,0 +1,60 @@
+---
+// A breathing pacer: a ring that grows as you breathe in and shrinks as you breathe out, in time with your steps.
+// Rhythmic breathing is something some runners like, not a proven fix; the page says so.
+---
+<div class="widget pacer" data-widget="breath">
+  <h3 class="widget-h">Breathe with your steps</h3>
+  <p class="fine">Pick a rhythm: steps while breathing in, then steps while breathing out.</p>
+  <div class="w-row">
+    <div class="seg" role="group" aria-label="Rhythm">
+      <button type="button" data-rhythm="3,3" aria-pressed="true">3 in, 3 out</button>
+      <button type="button" data-rhythm="3,2" aria-pressed="false">3 in, 2 out</button>
+      <button type="button" data-rhythm="2,2" aria-pressed="false">2 in, 2 out</button>
+    </div>
+    <label class="w-field"><span>Steps per minute</span><input class="w-in" type="number" inputmode="numeric" min="120" max="200" step="1" value="160" data-in="cad" /></label>
+  </div>
+  <div class="pacer-stage">
+    <div class="pacer-ring" aria-hidden="true"><span></span></div>
+    <p class="pacer-word" aria-live="off" data-out="word">Press start</p>
+    <p class="fine pacer-steps" data-out="steps"></p>
+  </div>
+  <div class="w-btns"><button type="button" class="w-btn" data-act="go">Start</button></div>
+</div>
+
+<style>
+  .pacer-stage { display: grid; justify-items: center; gap: 8px; margin-top: 16px; padding: 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+  .pacer-ring { width: 150px; height: 150px; border-radius: 50%; border: 2px dashed var(--line-strong); display: grid; place-items: center; }
+  .pacer-ring span { width: 150px; height: 150px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 30%, transparent); border: 2px solid var(--accent); transform: scale(.45); transition: transform var(--dur, 1s) linear; }
+  .pacer[data-in-breath="1"] .pacer-ring span { transform: scale(1); }
+  .pacer-word { margin: 0 !important; font: 700 30px/1 var(--f-display) !important; text-transform: uppercase; letter-spacing: .03em; }
+  .pacer-steps { margin: 0 !important; font-family: var(--f-mono); }
+  @media (prefers-reduced-motion: reduce) { .pacer-ring span { transition: none; } }
+</style>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="breath"]')) {
+    let rin = 3, rout = 3, timer = null, step = 0;
+    const cad = el.querySelector('[data-in="cad"]'), go = el.querySelector('[data-act="go"]');
+    const word = el.querySelector('[data-out="word"]'), steps = el.querySelector('[data-out="steps"]');
+    el.querySelectorAll('[data-rhythm]').forEach(b => b.addEventListener('click', () => {
+      el.querySelectorAll('[data-rhythm]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      [rin, rout] = b.dataset.rhythm.split(',').map(Number);
+      if (timer) { stop(); start(); }
+    }));
+    const beat = () => 60000 / Math.min(200, Math.max(120, +cad.value || 160));
+    function tickStep() {
+      const cyc = rin + rout, k = step % cyc, inhale = k < rin;
+      if (k === 0 || k === rin) {
+        el.dataset.inBreath = inhale ? '1' : '0';
+        el.style.setProperty('--dur', `${((inhale ? rin : rout) * beat()) / 1000}s`);
+        word.textContent = inhale ? 'Breathe in' : 'Breathe out';
+      }
+      steps.textContent = `Step ${inhale ? k + 1 : k - rin + 1} of ${inhale ? rin : rout}`;
+      step++;
+    }
+    function start() { step = 0; tickStep(); timer = setInterval(tickStep, beat()); go.textContent = 'Stop'; }
+    function stop() { clearInterval(timer); timer = null; go.textContent = 'Start'; word.textContent = 'Press start'; steps.textContent = ''; el.dataset.inBreath = '0'; }
+    go.addEventListener('click', () => (timer ? stop() : start()));
+    cad.addEventListener('change', () => { if (timer) { stop(); start(); } });
+  }
+</script>

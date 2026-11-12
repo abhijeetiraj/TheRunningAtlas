@@ -8,10 +8,14 @@ This is the **preview edition**. Pages carry `noindex`, nothing is deployed, and
 
 | Page | Path | What it has |
 | --- | --- | --- |
-| Atlas (home) | `/` | Hero runner on the trail, routes by experience, the 11 plates of the atlas |
+| Atlas (home) | `/` | Hero runner on Mars ground, routes by experience, the 11 sections with their topics, the 3D labs |
+| Section pages | `/<section>/` | One per section: what it covers, its topics in reading order (open, in clinician review, or coming), its labs |
+| Topic pages | `/<section>/<topic>/` | One per written topic, from `src/content/topics/`: summary, "In short", the article with its tools, the section's other topics, and the page's evidence ledger |
 | The running stride | `/how-running-works/stride/` | 3D stride lab: scrub, slow motion, speed, foot strike, views, ground force chart, cadence tools |
 | Warm-up studio | `/strength-mobility-drills/warm-up/` | Nine dynamic warm-up moves in 3D with the muscles they move |
 | Evidence ledger | `/library/evidence/` | Every claim on the site, its source and its grade |
+
+Written so far: all of **Start running** (nine topics, three of them in clinician review), and the **pace calculator** and **cadence counter** in Tools.
 
 ## Run it
 
@@ -19,9 +23,10 @@ Needs Node 22.23.4 or newer (see `.nvmrc`).
 
 ```sh
 npm ci
-npm run dev      # http://localhost:4321
-npm run build    # static site in dist/
-npm run preview  # serve dist/
+npm run dev           # http://localhost:4321
+npm run build         # static site in dist/, then a check that every internal link and #anchor resolves
+npm run build:review  # the same, plus the health pages still in clinician review (for the review preview)
+npm run preview       # serve dist/
 ```
 
 On Jezero Base the atlas is served at `/running/`, from the base repository's `public/running/`. Its door on the
@@ -41,16 +46,24 @@ Always build links with `href('/path/')` from `src/data/site.js` so they follow 
 
 - **[Astro](https://astro.build)** makes static HTML. Each page has one small client script; Vite bundles it.
 - **[three.js](https://threejs.org)** draws the 3D runner. It loads only on pages with a 3D stage and is shared between them.
-- **MDX** for long prose (`src/articles/`), so articles can use components such as `<Cite />`.
+- **MDX** for long prose, so articles can use components such as `<Cite />`. Topic pages are an Astro content
+  collection (`src/content.config.js`): one `.mdx` file per topic in `src/content/topics/<section>/<topic>.mdx`.
+- **The site map** is `SECTIONS` in `src/data/site.js`: sections and topics in reading order. A topic's page appears
+  as soon as its `.mdx` file exists; `src/lib/atlas.js` joins the two and works out each topic's state.
 - Dependencies are pinned to exact versions.
 
 ```
 src/
-  pages/         one file per URL
+  content/topics/  one MDX file per topic, by section (frontmatter: title, summary, description, inShort, read,
+                   kind, review, cleared, updated)
+  pages/         [section]/index.astro (section pages), [section]/[topic].astro (topic pages), and the hand-built pages
   layouts/       Base.astro: head, header, footer
-  components/    Cite, Ledger, Grades
+  components/    Cite, Ledger, Grades, Box (care / try / model asides), TopicLink (links that appear once a page is
+                 live), widgets/ (calculators, planners and timers used in articles)
   articles/      MDX prose for each page
-  data/          site.js (sections, nav), claims.js (evidence ledger), warmup-moves.js
+  data/          site.js (sections, nav), claims.js + claims/<section>.js (evidence ledger), runwalk.js
+                 (the example run-walk plan), warmup-moves.js
+  lib/atlas.js   the site map joined with the topic pages that exist
   scripts/       client code for each page (home, stride, warmup), shared ui.js and sky.js (Day/Dusk)
   lib/mars.js    the Sun at Jezero (from the base), for Day/Dusk
   lib/3d/        rig.js (the figure), gait.js (running model), motion.js (warm-up moves),
@@ -71,7 +84,7 @@ The atlas is part of Abhijeet I.'s portfolio, **Jezero Base** (https://abhijeeti
 
 ## Evidence rules
 
-Every factual claim sits in `src/data/claims.js` and is cited in the page with `<Cite id="R5" />`. The build fails on an unknown id, a duplicate id or a malformed claim.
+Every factual claim sits in the ledger (`src/data/claims.js` for the hand-built pages, `src/data/claims/<section>.js` for topic pages) and is cited in the page with `<Cite id="R5" />`. The build fails on an unknown id, a duplicate id, a malformed claim or a claim whose page is not in the site map.
 
 | Grade | Meaning |
 | --- | --- |
@@ -84,17 +97,24 @@ A claim is only **Checked** when it carries `passage: { quote, where, limits, ch
 
 For health and safety content: say plainly when to stop and get checked, give numbers with their study size and limits, and say "a link, not proof" for associations. Pages end with "General information, not medical advice."
 
+**Clinician review.** A topic with `review: clinician` in its frontmatter is a draft until a clinician has checked it and `cleared: true` is set. Drafts are built only by `npm run build:review` (for the review preview), with a "Draft for clinician review" note. On the live site they are listed as "In clinician review", links to them (`<TopicLink>`) show as plain text, and their claims stay out of the evidence ledger.
+
 ### Add a claim
 
-1. Add `{ id, page, grade, claim, src }` to `CLAIMS` in `src/data/claims.js`. Ids are a letter plus a number (R for the stride page, W for warm-up).
+1. Add `{ id, page, grade, claim, src }` to the section's file in `src/data/claims/` (or to `claims.js` for the stride and warm-up pages). `page` is the topic id, such as `start-running/first-run`. Ids are a letter plus a number: R stride, W warm-up, S start running, H how running works, E the engine, T training, M strength and mobility, F fuel, I injuries, D different runners, C racing, P tools, L library.
 2. Cite it in the page or article: `text<Cite id="R10" />` (no space before the tag).
 3. The page's ledger and `/library/evidence/` pick it up automatically.
 
-### Add a page
+### Add a topic page
 
-1. Create `src/pages/<section>/<page>.astro` using `Base.astro`.
-2. If it has claims, add the page to `LEDGER_PAGES` in `claims.js` and render `<Ledger claims={claimsFor('<page>')} />`.
-3. Link it from its section in `SECTIONS` (and `LABS` if it has 3D) in `src/data/site.js`.
+1. Check the topic is listed under its section in `SECTIONS` in `src/data/site.js` (that sets its slug and place).
+2. Create `src/content/topics/<section>/<slug>.mdx` with the frontmatter in `src/content.config.js`. Health pages get
+   `review: clinician`.
+3. Write the article. Link other topics with `<TopicLink to="<section>/<slug>" />`, never a bare path, so links to
+   unwritten or unreviewed pages stay plain text. Put asides in `<Box kind="care|try|model|note">`.
+4. Add its claims to `src/data/claims/<section>.js` and cite them. The page's ledger is added automatically.
+
+Hand-built pages (3D labs) go in `src/pages/<section>/<page>.astro` with `page: '/path/'` on their topic in `SECTIONS`; if they have claims, add them to `LEDGER_PAGES` in `claims.js`.
 
 ## The running model
 

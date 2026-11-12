@@ -1,0 +1,127 @@
+---
+// Pace calculator: give any two of distance, time and pace, and it works out the third, with even splits.
+import { RACES } from '../../scripts/run-math.js';
+---
+<div class="widget pace" data-widget="pace">
+  <h3 class="widget-h">Pace calculator</h3>
+  <p class="fine">Choose what to work out, then fill in the other two. Example values filled in.</p>
+  <div class="seg pace-mode" role="group" aria-label="Work out">
+    <button type="button" data-mode="pace" aria-pressed="true">Pace</button>
+    <button type="button" data-mode="time" aria-pressed="false">Finish time</button>
+    <button type="button" data-mode="dist" aria-pressed="false">Distance</button>
+  </div>
+  <div class="pace-grid">
+    <fieldset class="pace-f" data-f="dist">
+      <legend class="w-k">Distance</legend>
+      <div class="w-row">
+        <select class="w-in" data-in="race" aria-label="Race distance">
+          {RACES.map(r => <option value={r.id} selected={r.id === '10k'}>{r.label}</option>)}
+          <option value="custom">Other distance</option>
+        </select>
+        <span class="pace-custom"><input class="w-in w-wide" type="number" inputmode="decimal" min="0.1" max="400" step="0.01" value="10" data-in="dist" aria-label="Distance" />
+        <select class="w-in" data-in="dunit" aria-label="Distance unit"><option value="km" selected>km</option><option value="mi">miles</option></select></span>
+      </div>
+    </fieldset>
+    <fieldset class="pace-f" data-f="time">
+      <legend class="w-k">Finish time</legend>
+      <div class="w-row"><span class="w-time"><input class="w-in" type="number" inputmode="numeric" min="0" max="99" value="0" data-in="h" aria-label="Hours" />h<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="55" data-in="m" aria-label="Minutes" />m<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="0" data-in="s" aria-label="Seconds" />s</span></div>
+    </fieldset>
+    <fieldset class="pace-f" data-f="pace">
+      <legend class="w-k">Pace</legend>
+      <div class="w-row"><span class="w-time"><input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="5" data-in="pm" aria-label="Pace minutes" />:<input class="w-in" type="number" inputmode="numeric" min="0" max="59" value="30" data-in="ps" aria-label="Pace seconds" /></span>
+      <select class="w-in" data-in="punit" aria-label="Pace unit"><option value="km" selected>per km</option><option value="mi">per mile</option></select></div>
+    </fieldset>
+  </div>
+  <dl class="w-out">
+    <div class="w-stat"><dt>Pace per km</dt><dd data-out="pkm">–</dd></div>
+    <div class="w-stat"><dt>Pace per mile</dt><dd data-out="pmi">–</dd></div>
+    <div class="w-stat"><dt>Speed</dt><dd data-out="kmh">–</dd></div>
+    <div class="w-stat"><dt>Finish time</dt><dd data-out="time">–</dd></div>
+    <div class="w-stat"><dt>Distance</dt><dd data-out="dist">–</dd></div>
+  </dl>
+  <p class="w-msg" data-out="msg" hidden></p>
+  <div class="w-row"><span class="w-k">Even splits every</span>
+    <div class="seg" role="group" aria-label="Split unit"><button type="button" data-split="km" aria-pressed="true">km</button><button type="button" data-split="mi" aria-pressed="false">mile</button></div>
+  </div>
+  <div class="w-scroll"><table class="w-table"><thead><tr><th scope="col">Split</th><th scope="col">Distance</th><th scope="col">Time on the clock</th></tr></thead><tbody data-out="splits"></tbody></table></div>
+</div>
+
+<style>
+  .pace-mode { margin-top: 14px; }
+  .pace-grid { display: grid; gap: 10px; margin-top: 12px; }
+  .pace-f { border: 1px solid var(--line); border-radius: 14px; background: var(--card); margin: 0; padding: 10px 14px 14px; }
+  .pace-f .w-row { margin-top: 8px; }
+  .pace-f.is-out { border-style: dashed; background: transparent; opacity: .6; }
+  .pace-f.is-out input, .pace-f.is-out select { pointer-events: none; }
+  .pace-custom { display: inline-flex; gap: 8px; }
+</style>
+
+<script>
+  import { RACES, KM_PER_MI, fmtClock, fmtPace, round } from '../../scripts/run-math.js';
+
+  for (const el of document.querySelectorAll('[data-widget="pace"]')) init(el);
+
+  function init(el) {
+    const q = k => el.querySelector(`[data-in="${k}"]`);
+    const out = k => el.querySelector(`[data-out="${k}"]`);
+    let mode = 'pace', split = 'km';
+    const fields = { dist: el.querySelector('[data-f="dist"]'), time: el.querySelector('[data-f="time"]'), pace: el.querySelector('[data-f="pace"]') };
+    const markOut = () => Object.entries(fields).forEach(([k, f]) => {
+      f.classList.toggle('is-out', k === mode);
+      f.querySelectorAll('input, select').forEach(i => { i.tabIndex = k === mode ? -1 : 0; i.setAttribute('aria-disabled', String(k === mode)); });
+    });
+    el.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+      el.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      mode = b.dataset.mode; markOut(); run();
+    }));
+    el.querySelectorAll('[data-split]').forEach(b => b.addEventListener('click', () => {
+      el.querySelectorAll('[data-split]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      split = b.dataset.split; run();
+    }));
+    q('race').addEventListener('change', () => {
+      const r = RACES.find(x => x.id === q('race').value);
+      if (r) { q('dunit').value = 'km'; q('dist').value = r.km; }
+      run();
+    });
+    q('dist').addEventListener('input', () => { q('race').value = 'custom'; });
+
+    const readKm = () => { const d = +q('dist').value; return d > 0 ? (q('dunit').value === 'mi' ? d * KM_PER_MI : d) : NaN; };
+    const readTime = () => { const t = (+q('h').value || 0) * 3600 + (+q('m').value || 0) * 60 + (+q('s').value || 0); return t > 0 ? t : NaN; };
+    const readPaceKm = () => { const p = (+q('pm').value || 0) * 60 + (+q('ps').value || 0); return p > 0 ? (q('punit').value === 'mi' ? p / KM_PER_MI : p) : NaN; };
+
+    function writeBack(km, t, pKm) {
+      if (mode === 'dist') { q('race').value = 'custom'; q('dist').value = round(q('dunit').value === 'mi' ? km / KM_PER_MI : km, 2); }
+      if (mode === 'time') { const r = Math.round(t); q('h').value = Math.floor(r / 3600); q('m').value = Math.floor((r % 3600) / 60); q('s').value = r % 60; }
+      if (mode === 'pace') { const p = Math.round(q('punit').value === 'mi' ? pKm * KM_PER_MI : pKm); q('pm').value = Math.floor(p / 60); q('ps').value = p % 60; }
+    }
+
+    function run() {
+      let km = readKm(), t = readTime(), pKm = readPaceKm();
+      if (mode === 'pace') pKm = t / km;
+      if (mode === 'time') t = pKm * km;
+      if (mode === 'dist') km = t / pKm;
+      const msg = out('msg');
+      if (![km, t, pKm].every(x => Number.isFinite(x) && x > 0)) {
+        ['pkm', 'pmi', 'kmh', 'time', 'dist'].forEach(k => (out(k).textContent = '–'));
+        out('splits').innerHTML = ''; msg.hidden = false; msg.textContent = 'Fill in the two boxes that are not greyed out.';
+        return;
+      }
+      msg.hidden = true;
+      writeBack(km, t, pKm);
+      out('pkm').innerHTML = `${fmtPace(pKm)}<small>/km</small>`;
+      out('pmi').innerHTML = `${fmtPace(pKm * KM_PER_MI)}<small>/mi</small>`;
+      out('kmh').innerHTML = `${round(3600 / pKm)}<small>km/h</small> ${round(3600 / pKm / KM_PER_MI)}<small>mph</small>`;
+      out('time').textContent = fmtClock(t);
+      out('dist').innerHTML = `${round(km, 2)}<small>km</small> ${round(km / KM_PER_MI, 2)}<small>mi</small>`;
+      // splits
+      const unit = split === 'km' ? 1 : KM_PER_MI, n = Math.min(500, Math.floor(km / unit + 1e-9));
+      const rows = [];
+      for (let i = 1; i <= n; i++) rows.push(`<tr><td>${i}</td><td>${i} ${split === 'km' ? 'km' : i === 1 ? 'mile' : 'miles'}</td><td>${fmtClock(pKm * unit * i)}</td></tr>`);
+      if (km - n * unit > 0.005) rows.push(`<tr><td>Finish</td><td>${round(km / unit, 2)} ${split === 'km' ? 'km' : 'miles'}</td><td>${fmtClock(t)}</td></tr>`);
+      out('splits').innerHTML = rows.join('');
+    }
+    el.addEventListener('input', e => { if (e.target.matches('input')) run(); });
+    el.addEventListener('change', e => { if (e.target.matches('select') && e.target !== q('race')) run(); });
+    markOut(); run();
+  }
+</script>

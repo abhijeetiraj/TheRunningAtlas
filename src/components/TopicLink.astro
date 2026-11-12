@@ -1,0 +1,12 @@
+---
+// A link to another topic, by its id (such as 'start-running/talk-test'). It renders as a link only when that page is
+// built: topics still being written, and health pages awaiting clinician review on the live site, show as plain text.
+// So a page never links to a page that is not there, and links appear by themselves once a page goes live.
+import { atlas } from '../lib/atlas.js';
+import { href } from '../data/site.js';
+const { to, hash = '' } = Astro.props;
+const { topics } = await atlas();
+const t = topics.find(x => x.id === to);
+if (!t) throw new Error(`<TopicLink to="${to}">: no such topic in src/data/site.js`);
+---
+{t.href ? <a href={href(t.href) + hash}><slot>{t.title}</slot></a> : <span class="tl-off"><slot>{t.title}</slot></span>}

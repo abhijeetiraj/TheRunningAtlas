@@ -1,0 +1,61 @@
+---
+// Before you start: tick anything that applies. Any symptom means a doctor first; some conditions mean a quick check.
+// It cannot clear anyone to exercise, and says so; it only points towards care.
+const SYMPTOMS = [
+  'Pain, pressure or discomfort in your chest, neck, jaw or arms, at rest or when you are active',
+  'Getting breathless at rest, or with light effort, more than you would expect',
+  'Fainting, blacking out, or dizziness that makes you lose your balance',
+  'Your heart racing, fluttering or skipping beats',
+  'Swollen ankles, or calves that hurt when you walk and ease when you stop',
+  'Unusual tiredness or breathlessness with everyday activities',
+];
+const CONDITIONS = [
+  'A doctor has told you that you have a heart condition or high blood pressure',
+  'Diabetes, kidney disease, or another long-term condition you take medicine for',
+  'You are pregnant, or gave birth in the past year',
+  'A bone, joint or muscle problem that more activity could make worse',
+  'A doctor has told you to be careful with exercise',
+];
+---
+<div class="widget ready" data-widget="ready">
+  <h3 class="widget-h">Before you start: a quick check</h3>
+  <p class="fine">Tick anything that applies to you. This is not a medical assessment and cannot clear you to exercise; it shows when to talk to a doctor first.</p>
+  <fieldset class="ready-set"><legend class="w-k">Symptoms</legend>
+    {SYMPTOMS.map(s => <label class="ready-row"><input type="checkbox" data-kind="symptom" /><span>{s}</span></label>)}
+  </fieldset>
+  <fieldset class="ready-set"><legend class="w-k">Conditions</legend>
+    {CONDITIONS.map(s => <label class="ready-row"><input type="checkbox" data-kind="condition" /><span>{s}</span></label>)}
+  </fieldset>
+  <div class="w-msg ready-out" data-out="msg" aria-live="polite"></div>
+</div>
+
+<style>
+  .ready-set { border: 0; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; }
+  .ready-row { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); font-size: 16px; line-height: 1.45; cursor: pointer; }
+  .ready-row input { margin: 3px 0 0; width: 18px; height: 18px; accent-color: var(--rust); }
+  .ready-row:has(input:checked) { border-color: var(--rust); }
+  .ready-out p { margin: 0 !important; }
+  .ready-out p + p { margin-top: 8px !important; }
+</style>
+
+<script>
+  for (const el of document.querySelectorAll('[data-widget="ready"]')) {
+    const msg = el.querySelector('[data-out="msg"]');
+    const run = () => {
+      const sym = el.querySelectorAll('[data-kind="symptom"]:checked').length;
+      const con = el.querySelectorAll('[data-kind="condition"]:checked').length;
+      const emergency = '<p><strong>If you have chest pain or pressure, severe breathlessness, or you faint, now or during a run, stop and call emergency services.</strong></p>';
+      if (sym) {
+        msg.dataset.tone = 'big';
+        msg.innerHTML = `<p><strong>See a doctor before you start running.</strong> ${sym > 1 ? 'These symptoms need' : 'This symptom needs'} checking first, even if it comes and goes. Tell the doctor you want to start running.</p>${emergency}`;
+      } else if (con) {
+        msg.dataset.tone = 'big';
+        msg.innerHTML = '<p><strong>Check with your doctor, midwife or physiotherapist first</strong> about how to start and what to watch for. Many people with these conditions run, often with a plan made for them.</p>' + emergency;
+      } else {
+        msg.dataset.tone = 'ok';
+        msg.innerHTML = '<p>Nothing you ticked points to a check first. Most people in this position can start with brisk walking and run-walk, and build up gradually. You can still ask a doctor before you start.</p><p>If any of the symptoms above appear later, stop running and seek care straight away. For chest pain or pressure, severe breathlessness or fainting, call emergency services.</p>';
+      }
+    };
+    el.addEventListener('change', run); run();
+  }
+</script>

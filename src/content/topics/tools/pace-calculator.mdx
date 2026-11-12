@@ -1,0 +1,37 @@
+---
+title: Pace calculator
+summary: Work out your pace, finish time or distance from the other two, with even splits by the kilometre or mile.
+description: A running pace calculator. Turn a finish time into a pace, a pace into a finish time, or both into a distance, in kilometres or miles, with even splits.
+inShort:
+  - Give any two of distance, time and pace, and the calculator works out the third.
+  - It shows pace per kilometre and per mile, speed, and even splits for the whole distance.
+  - Even splits are a target, not a rule. Hills, wind and fatigue all change them.
+read: 3
+kind: tool
+updated: 2026-11-12
+---
+import TopicLink from '../../../components/TopicLink.astro';
+import Box from '../../../components/Box.astro';
+import PaceCalculator from '../../../components/widgets/PaceCalculator.astro';
+
+<PaceCalculator />
+
+## How it works
+
+Pace, time and distance are tied together by one line of arithmetic:
+
+<p class="formula"><span>finish time</span><span>=</span><span>pace × distance</span></p>
+
+So any two give you the third. Pace is time per unit of distance (minutes per kilometre or per mile). Speed is the same thing the other way up: distance per hour. A pace of 6:00 per km is 10 km/h; 5:00 per km is 12 km/h.
+
+The splits table shows where the clock would be at each kilometre or mile if you ran the whole way at exactly the same pace. In a race, the first split usually runs fast with excitement, and hills and wind move the rest around. Aim for even effort more than for identical numbers.
+
+## Kilometres and miles
+
+One mile is 1.609344 km. To turn a pace per km into a pace per mile, multiply it by 1.609. For example, 5:30 per km is about 8:51 per mile.
+
+<Box kind="try">
+
+Going from a treadmill to the road? <TopicLink to="start-running/where-to-run" /> has a converter from treadmill speed to pace.
+
+</Box>

@@ -2,18 +2,30 @@
 import Base from '../../layouts/Base.astro';
 import Ledger from '../../components/Ledger.astro';
 import Grades from '../../components/Grades.astro';
-import { CLAIMS, LEDGER_PAGES, claimsFor } from '../../data/claims.js';
-import { href } from '../../data/site.js';
+import { CLAIMS, claimsFor } from '../../data/claims.js';
+import { href, SECTIONS } from '../../data/site.js';
+import { ledgerPages, SHOW_DRAFTS } from '../../lib/atlas.js';
 
+// Group the claims by page, in the order the pages appear in the atlas. Claims on pages that are not built (drafts
+// outside the review preview) are left out, since their page is not on the site.
+const pages = await ledgerPages();
+const groups = Object.entries(pages)
+  .map(([key, p]) => ({ key, ...p, claims: claimsFor(key) }))
+  .filter(g => g.claims.length && g.href);
+const order = k => k === 'stride' ? 'how-running-works/stride' : k === 'warmup' ? 'strength-mobility-drills/warm-up' : k;
+const rank = k => { const [sec, top] = order(k).split('/'); const s = SECTIONS.findIndex(x => x.slug === sec); return s * 100 + SECTIONS[s].topics.findIndex(t => t.slug === top); };
+groups.sort((a, b) => rank(a.key) - rank(b.key));
+const shown = groups.flatMap(g => g.claims);
+for (const c of CLAIMS) if (!pages[c.page]) throw new Error(`claim ${c.id}: page "${c.page}" has no page in the atlas yet`);
 const counts = {};
-for (const c of CLAIMS) counts[c.grade] = (counts[c.grade] || 0) + 1;
+for (const c of shown) counts[c.grade] = (counts[c.grade] || 0) + 1;
 ---
 <Base title="Evidence ledger" description="Every claim on The Running Atlas, its source, and how well it has been checked.">
   <header class="page-head wrap">
     <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><span>Section 11 · Library</span><span aria-hidden="true">/</span><span aria-current="page">Evidence ledger</span></nav>
     <h1 class="display page-title">Evidence ledger</h1>
     <p class="lede">Every claim on the site, where it comes from, and how well it has been checked. A claim is only marked Checked once the exact passage has been read in the full source and recorded with its limits.</p>
-    <p class="meta"><span>{CLAIMS.length} claims</span><span>{counts.checked || 0} checked</span><span>{counts.abstract || 0} abstract only</span><span>{counts.unchecked || 0} not yet checked</span><span>{counts.model || 0} model</span></p>
+    <p class="meta"><span>{shown.length} claims</span><span>{counts.checked || 0} checked</span><span>{counts.abstract || 0} abstract only</span><span>{counts.unchecked || 0} not yet checked</span><span>{counts.model || 0} model</span></p>
   </header>
 
   <section class="wrap band">
@@ -22,12 +34,13 @@ for (const c of CLAIMS) counts[c.grade] = (counts[c.grade] || 0) + 1;
   </section>
 
   <section class="wrap band">
-    {Object.entries(LEDGER_PAGES).map(([key, p]) => (
+    {groups.map(g => (
       <div class="ledger-group">
-        <div class="band-head"><h2 class="h2"><a href={href(p.href)}>{p.title}</a></h2><p class="sub">{claimsFor(key).length} claims</p></div>
-        <Ledger claims={claimsFor(key)} />
+        <div class="band-head"><h2 class="h2"><a href={href(g.href)}>{g.title}</a></h2><p class="sub">{g.claims.length} claims{g.state === 'review' ? ' · page in clinician review' : ''}</p></div>
+        <Ledger claims={g.claims} />
       </div>
     ))}
+    {SHOW_DRAFTS && <p class="fine">This preview includes pages still in clinician review.</p>}
     <p class="fine">General information, not medical advice.</p>
   </section>
 </Base>

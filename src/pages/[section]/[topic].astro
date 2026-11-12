@@ -1,0 +1,92 @@
+---
+// A topic page, from src/content/topics/<section>/<topic>.mdx: the summary up top, the article, its section's other
+// topics alongside, and the page's evidence ledger at the bottom.
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Ledger from '../../components/Ledger.astro';
+import { atlas, builtTopics } from '../../lib/atlas.js';
+import { claimsFor } from '../../data/claims.js';
+import { href } from '../../data/site.js';
+
+export async function getStaticPaths() {
+  return (await builtTopics()).map(t => {
+    const [section, topic] = t.id.split('/');
+    return { params: { section, topic }, props: { id: t.id } };
+  });
+}
+const { id } = Astro.props;
+const { sections } = await atlas();
+const s = sections.find(x => x.slug === id.split('/')[0]);
+const t = s.topics.find(x => x.id === id);
+const d = t.entry.data;
+const { Content, headings } = await render(t.entry);
+const claims = claimsFor(id);
+const draft = t.state === 'review';
+const toc = headings.filter(h => h.depth === 2);
+const linked = s.topics.filter(x => x.href);
+const at = linked.indexOf(t);
+const prev = linked[at - 1], next = linked[at + 1];
+const KIND = { article: 'Article', tool: 'Tool', lab: '3D lab' };
+const fmtDate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+---
+<Base title={d.title} description={d.description}>
+  <header class="page-head wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><a href={href(`/${s.slug}/`)}>Section {s.n} · {s.title}</a><span aria-hidden="true">/</span><span aria-current="page">{d.title}</span></nav>
+    <h1 class="display page-title">{d.title}</h1>
+    <p class="lede">{d.summary}</p>
+    <p class="meta"><span>{KIND[d.kind]}</span><span>About {d.read} min read</span>{claims.length > 0 && <span>{claims.length} claims graded</span>}<span>Updated {fmtDate(d.updated)}</span></p>
+  </header>
+
+  {draft && (
+    <div class="wrap"><p class="draft-note" role="note"><strong>Draft for clinician review.</strong> This page is written but has not been checked by a clinician yet, so it is not on the live site. It shows here only so it can be reviewed.</p></div>
+  )}
+
+  <div class="wrap">
+    <section class="in-short" aria-labelledby="in-short-h">
+      <h2 class="label" id="in-short-h">In short</h2>
+      <ul>{d.inShort.map(x => <li>{x}</li>)}</ul>
+    </section>
+  </div>
+
+  <div class="wrap prose-grid">
+    <article class="prose">
+      <Content />
+    </article>
+    <aside class="tools rail" aria-label="In this section">
+      {toc.length > 2 && (
+        <nav class="toc" aria-labelledby="toc-h">
+          <h2 class="label" id="toc-h">On this page</h2>
+          <ol>{toc.map(h => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+        </nav>
+      )}
+      <nav class="sec-map" aria-labelledby="secmap-h">
+        <h2 class="label" id="secmap-h"><a href={href(`/${s.slug}/`)}>Section {s.n} · {s.title}</a></h2>
+        <ol>
+          {s.topics.map(x => (
+            <li class:list={[`sm-${x.state}`, { 'sm-here': x === t }]}>
+              {x === t
+                ? <span aria-current="page">{x.title}</span>
+                : x.href ? <a href={href(x.href)}>{x.title}</a> : <span>{x.title}<span class="vh"> (coming)</span></span>}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    </aside>
+  </div>
+
+  <nav class="wrap pager" aria-label="Next and previous topics">
+    {prev ? <a class="pager-a pager-prev" href={href(prev.href)}><span class="label">Previous</span><span class="pager-t">{prev.title}</span></a> : <a class="pager-a pager-prev" href={href(`/${s.slug}/`)}><span class="label">Section {s.n}</span><span class="pager-t">{s.title}</span></a>}
+    {next ? <a class="pager-a pager-next" href={href(next.href)}><span class="label">Next</span><span class="pager-t">{next.title}</span></a> : <a class="pager-a pager-next" href={href(`/${s.slug}/`)}><span class="label">Back to section {s.n}</span><span class="pager-t">{s.title}</span></a>}
+  </nav>
+
+  <section class="wrap band" id="evidence">
+    <div class="band-head"><h2 class="h2">Evidence ledger</h2><p class="sub">{claims.length > 0 ? 'Every claim on this page, its source and how well it has been checked.' : 'This page makes no claims that need a source: it is advice and arithmetic.'}</p></div>
+    {claims.length > 0 && <Ledger claims={claims} />}
+    <p class="fine">General information, not medical advice.</p>
+  </section>
+</Base>
+
+<script>
+  import { flashOnHash } from '../../scripts/ui.js';
+  flashOnHash();
+</script>

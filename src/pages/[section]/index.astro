@@ -1,0 +1,74 @@
+---
+// A section's own page: what it covers, its topics in reading order and their state, and its 3D labs.
+import Base from '../../layouts/Base.astro';
+import { atlas, SHOW_DRAFTS } from '../../lib/atlas.js';
+import { SECTIONS, href } from '../../data/site.js';
+
+export function getStaticPaths() {
+  return SECTIONS.map(s => ({ params: { section: s.slug } }));
+}
+const { section } = Astro.params;
+const { sections } = await atlas();
+const s = sections.find(x => x.slug === section);
+const i = sections.indexOf(s);
+const prev = sections[i - 1], next = sections[i + 1];
+const pad = n => String(n).padStart(2, '0');
+const KIND = { tool: 'Tool', lab: '3D lab' };
+const STATE = { open: 'Open', review: 'In clinician review', coming: 'Coming' };
+const review = s.topics.filter(t => t.state === 'review').length;
+---
+<Base title={s.title} description={`${s.intro} Section ${s.n} of The Running Atlas.`}>
+  <header class="page-head wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href('/')}>Atlas</a><span aria-hidden="true">/</span><span aria-current="page">Section {s.n} · {s.title}</span></nav>
+    <p class="eyebrow">Section {pad(s.n)} · For {s.who.toLowerCase()}</p>
+    <h1 class="display page-title">{s.title}</h1>
+    <p class="lede">{s.intro}</p>
+    <p class="meta"><span>{s.open} of {s.topics.length} topics open</span>{review > 0 && <span>{review} in clinician review</span>}{s.labs.length > 0 && <span>{s.labs.length} 3D lab{s.labs.length > 1 ? 's' : ''}</span>}</p>
+  </header>
+
+  <section class="wrap band band-tight" aria-labelledby="topics-h">
+    <div class="band-head"><h2 class="h2" id="topics-h">Topics</h2><p class="sub">In reading order. Open topics are ready to read; the rest are being written.</p></div>
+    <ol class="topic-list">
+      {s.topics.map(t => (
+        <li class:list={['topic', `topic-${t.state}`]}>
+          {t.href ? (
+            <a class="topic-in" href={href(t.href)}>
+              <span class="topic-no">{pad(t.n)}</span>
+              <span class="topic-title">{t.title}</span>
+              {t.summary && <span class="topic-sum">{t.summary}</span>}
+              <span class="topic-tags">{KIND[t.kind] && <span class="tag">{KIND[t.kind]}</span>}{t.page && t.slug !== 'evidence' && <span class="tag">3D lab</span>}<span class={`state state-${t.state}`}>{STATE[t.state]}</span></span>
+            </a>
+          ) : (
+            <div class="topic-in">
+              <span class="topic-no">{pad(t.n)}</span>
+              <span class="topic-title">{t.title}</span>
+              {t.summary && <span class="topic-sum">{t.summary}</span>}
+              <span class="topic-tags"><span class={`state state-${t.state}`}>{STATE[t.state]}</span></span>
+            </div>
+          )}
+        </li>
+      ))}
+    </ol>
+    {review > 0 && <p class="fine">Pages marked “In clinician review” are written and waiting for a clinician to check them{SHOW_DRAFTS ? '. This preview shows them so they can be reviewed.' : ' before they go live.'}</p>}
+  </section>
+
+  {s.labs.length > 0 && (
+    <section class="wrap band band-tight" aria-labelledby="labs-h">
+      <div class="band-head"><h2 class="h2" id="labs-h">3D labs</h2></div>
+      <ol class="labs">
+        {s.labs.map(l => (
+          <li class:list={['lab', { 'is-live': l.href }]}>
+            {l.href
+              ? <a href={href(l.href)}><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Open</span></a>
+              : <div><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Planned</span></div>}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  <nav class="wrap pager" aria-label="Other sections">
+    {prev ? <a class="pager-a pager-prev" href={href(`/${prev.slug}/`)}><span class="label">Section {prev.n}</span><span class="pager-t">{prev.title}</span></a> : <span />}
+    {next ? <a class="pager-a pager-next" href={href(`/${next.slug}/`)}><span class="label">Section {next.n}</span><span class="pager-t">{next.title}</span></a> : <span />}
+  </nav>
+</Base>
