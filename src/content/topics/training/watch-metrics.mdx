@@ -1,0 +1,67 @@
+---
+title: What your watch metrics mean
+summary: A running watch measures a few things well, such as time, and estimates many others, from distance to VO2max and recovery time. Knowing which is which helps you use the numbers as a guide without letting them run your training.
+description: A plain guide to running watch numbers. Pace and distance from GPS, wrist and chest-strap heart rate, cadence, ground contact time and vertical oscillation, VO2max estimates, and training load and recovery scores, with what the evidence says about their accuracy.
+inShort:
+  - Time is exact. Distance and pace are good on open roads, less so under trees, between tall buildings and on tight bends.
+  - Wrist heart rate is less accurate than a chest strap. Watch VO2max estimates can be off by a lot for one person.
+  - Training load, recovery and readiness scores are estimates from formulas that are mostly not published. Use them as a prompt, not a verdict.
+read: 7
+updated: 2026-11-12
+---
+import Cite from '../../../components/Cite.astro';
+import Box from '../../../components/Box.astro';
+import TopicLink from '../../../components/TopicLink.astro';
+
+## Measured, or estimated?
+
+Your watch measures a few things directly: time, satellite positions, the movement of the watch and, through the light sensor on the back, changes in blood flow under the skin. Everything else is worked out from those with formulas, and the further a number is from the raw data, the more it's an estimate.
+
+| Metric | What it comes from | How much to trust it |
+| --- | --- | --- |
+| **Time** | The clock | Exact |
+| **Distance, pace** | GPS positions | Good in the open, worse in cities, forests and on tracks |
+| **Heart rate** | Wrist light sensor, or a chest strap | Chest strap closer to the truth |
+| **Cadence** | The watch's motion sensor | Usually close |
+| **Contact time, bounce** | Motion sensor, or a sensor on a strap or shoe | Estimates; best for your own trends |
+| **VO2max** | A formula using pace and heart rate | Rough for one person |
+| **Training load, recovery, readiness** | Formulas the makers mostly don't publish | Unknown; use as a prompt |
+
+## Pace and distance
+
+GPS works out where you are from satellite signals every second or so. Under trees, between tall buildings or on a track's tight bends, the signal bounces and the points wobble, so distance and pace can be off. Instant pace jumps around for the same reason; an average over a lap or a kilometre is steadier.
+
+On a treadmill, the watch guesses pace from your arm swing, which is less reliable. See <TopicLink to="start-running/where-to-run">where to run</TopicLink>.
+
+## Heart rate
+
+In 50 adults on a treadmill, bike and elliptical, a chest-strap monitor agreed most closely with an ECG. Wrist-worn optical monitors were less accurate, most of all on the elliptical<Cite id="E19" />.
+
+Two more things to know:
+
+- **Drift.** On a long steady run, heart rate slowly climbs even at the same pace, more so in heat or when you're low on fluid<Cite id="E18" />. A rising heart rate late in a long run isn't necessarily a sign you're running too hard.
+- **Zones depend on your maximum.** Watches often set zones from an age formula. A large analysis gave maximal heart rate as about 208 − 0.7 × age, but with a typical error of around 10 beats a minute for one person<Cite id="E15" />. See <TopicLink to="the-engine/heart-rate-zones">heart-rate zones</TopicLink> for better ways to set them.
+
+## Cadence, contact time and bounce
+
+Cadence is your steps per minute. A higher step rate at the same speed goes with less vertical bounce and lower ground forces<Cite id="H8" />, which is why some runners use it as a cue. See <TopicLink to="how-running-works/cadence-step-length">cadence and step length</TopicLink>.
+
+Ground contact time and vertical oscillation (bounce) are estimated from motion sensors. They change with speed, so compare like with like: the same pace, on the same kind of run. The <TopicLink to="how-running-works/stride">running stride lab</TopicLink> shows how they fit together in a simple model of a typical runner<Cite id="R1" />.
+
+## VO2max estimates
+
+Watches estimate VO2max from your pace and heart rate. Pooling 14 validation studies, wearables that estimate it from resting data overestimated it by about 2 ml/kg/min on average, with wide errors for individuals. Estimates made from exercise data were right on average, but one person's reading could still be off by roughly 10 ml/kg/min either way<Cite id="T7" />.
+
+So your watch's VO2max is best used as a trend: if it creeps up over months of training, that's a good sign. Don't compare your number with a friend's, and don't worry about a small drop after a hot week or a hilly run. See <TopicLink to="the-engine/vo2max">VO2max</TopicLink>.
+
+## Training load, recovery and readiness
+
+Training load, recovery time, readiness, "training status" and similar scores combine your heart rate, pace, sleep and sometimes heart-rate variability with formulas that each maker designs. Most of these formulas aren't published, so it's hard to know how well they work.
+
+Use them as a prompt to check in with yourself, not a verdict. If the watch says you're recovered but your legs feel heavy and you slept badly, trust your body. If it says you need three days' rest after an easy run, it's probably wrong.
+
+<Box kind="try" title="A simple check">
+
+Once a month, run the same easy route at the same easy, chatty effort, and note your pace and average heart rate. Over months, a faster pace at the same heart rate, or a lower heart rate at the same pace, is a better sign of progress than any score.
+
+</Box>

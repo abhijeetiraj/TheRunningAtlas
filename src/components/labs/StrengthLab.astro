@@ -1,0 +1,37 @@
+---
+// The Strength library: eight strength exercises for runners on the 3D runner, with the muscles each one works lit.
+import Cite from '../Cite.astro';
+import { STRENGTH } from '../../data/strength-moves.js';
+const first = STRENGTH[0];
+---
+<section class="lab-shell" id="lab" aria-label="Strength library">
+  <div class="wrap">
+    <div class="lab-title"><span class="label">3D lab</span><h2 class="h2">Strength library</h2></div>
+    <div class="studio-grid">
+      <ol class="move-list" aria-label="Exercises">
+        {STRENGTH.map((m, i) => (
+          <li><button type="button" data-ex={i} aria-pressed={String(i === 0)}><span class="mv-no">{i + 1}</span><span class="mv-name">{m.name}</span><span class="mv-dose">{m.dose}</span></button></li>
+        ))}
+      </ol>
+      <div class="studio-main">
+        <div class="stage-wrap">
+          <div class="stage stage-wide" id="strengthStage">
+            <div class="callouts" id="strengthCallouts"></div>
+            <button type="button" class="routine" id="strengthPlay"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4.5" width="4.2" height="15" fill="currentColor"/><rect x="13.8" y="4.5" width="4.2" height="15" fill="currentColor"/></svg><span>Pause</span></button>
+          </div>
+          <div class="legend" aria-hidden="true"><span class="label">Legend</span><span class="lg lg-work">Working</span><span class="lg lg-stretch">Lengthening</span><span class="lg lg-spring">Achilles tendon</span></div>
+        </div>
+        <div class="move-card" id="strengthCard" aria-live="polite">
+          <div class="mc-head"><span class="mc-no">1/{STRENGTH.length}</span><h3 class="mc-name">{first.name}</h3><span class="mc-dose">{first.dose}</span></div>
+          <dl class="mc-grid"><div><dt>How</dt><dd>{first.how}</dd></div><div><dt>What it works</dt><dd>{first.works}</dd></div><div><dt>Why runners do it</dt><dd>{first.why}</dd></div></dl>
+        </div>
+        <p class="fine">Doses are common starting points, not tested prescriptions<Cite id="M5" />. Move slowly and with control; it should feel like hard work, not pain.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { initStrengthLab } from '../../scripts/labs/strength.js';
+  initStrengthLab(document.getElementById('lab'));
+</script>

@@ -175,7 +175,7 @@ export const LABS = [
   { name: 'Shoe cut-away', what: 'Slice a running shoe to see foam, drop and plates.', topic: 'how-running-works/shoe-science', section: 2 },
   { name: 'Oxygen journey', what: 'Follow oxygen from the lungs to the heart to a working muscle, from rest to a hard run.', topic: 'the-engine/heart-lungs-oxygen', section: 3 },
   { name: 'Muscle fibres', what: 'Look inside a calf muscle and watch slow and fast fibres switch on as effort rises.', topic: 'the-engine/muscle-fibres', section: 3 },
-  { name: 'Strength library', what: 'Every strength exercise on the 3D runner, with the muscles it trains.', section: 5 },
+  { name: 'Strength library', what: 'Eight strength exercises for runners on the 3D runner, with the muscles each one works.', topic: 'strength-mobility-drills/strength-training', section: 5 },
   { name: 'Injury body map', what: 'Tap a sore area for common causes and when to get checked.', section: 7 },
   { name: 'Course fly-over', what: 'Fly over a race course with its hills and a pacing plan.', section: 9 },
 ];

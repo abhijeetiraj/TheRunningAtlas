@@ -10,6 +10,9 @@ import { SECTIONS } from './site.js';
 import { CLAIMS as START } from './claims/start-running.js';
 import { CLAIMS as HOW } from './claims/how-running-works.js';
 import { CLAIMS as ENGINE } from './claims/the-engine.js';
+import { CLAIMS as TRAINING } from './claims/training.js';
+import { CLAIMS as STRENGTH } from './claims/strength-mobility-drills.js';
+import { CLAIMS as FUEL } from './claims/fuel-recovery.js';
 import { CLAIMS as TOOLS } from './claims/tools.js';
 
 export const GRADES = {
@@ -58,7 +61,7 @@ const CORE = [
   { id: 'W5', page: 'warmup', grade: 'abstract', claim: 'Pooling 25 trials (26,610 people), stretching programmes showed no clear protective effect; strength training programmes were linked with the biggest drop in injuries.', src: 'Lauersen et al. 2014, Br J Sports Med 48:871-877' },
 ];
 
-export const CLAIMS = [...CORE, ...START, ...HOW, ...ENGINE, ...TOOLS];
+export const CLAIMS = [...CORE, ...START, ...HOW, ...ENGINE, ...TRAINING, ...STRENGTH, ...FUEL, ...TOOLS];
 
 
 // ---- build-time checks
