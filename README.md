@@ -9,7 +9,7 @@ This is the **preview edition**. Pages carry `noindex`, nothing is deployed, and
 | Page | Path | What it has |
 | --- | --- | --- |
 | Atlas (home) | `/` | Hero runner on Mars ground, routes by experience, the 11 sections with their topics, the 3D labs |
-| Section pages | `/<section>/` | One per section: what it covers, its topics in reading order (open, in clinician review, or coming), its labs |
+| Section pages | `/<section>/` | One per section: what it covers, its topics in reading order (open, not clinician reviewed, or coming), its labs |
 | Topic pages | `/<section>/<topic>/` | One per written topic, from `src/content/topics/`: summary, "In short", the article with its tools, the section's other topics, and the page's evidence ledger |
 | The running stride | `/how-running-works/stride/` | 3D stride lab: scrub, slow motion, speed, foot strike, views, ground force chart, cadence tools |
 | Warm-up studio | `/strength-mobility-drills/warm-up/` | Nine dynamic warm-up moves in 3D with the muscles they move |
@@ -17,8 +17,8 @@ This is the **preview edition**. Pages carry `noindex`, nothing is deployed, and
 | Search | `/search/` | Searches every live page (Pagefind); `?q=` fills the box, so a search can be shared |
 
 Written so far: every topic in all eleven sections (74 topic pages), except **Videos from the channel**, which waits
-for the channel's links. 25 of them are health pages in clinician review: they are built only by `npm run build:review`
-and show as "In clinician review" on the live site. Nine 3D labs: the stride lab and warm-up studio (hand-built pages),
+for the channel's links. 25 of them are health pages that no clinician has reviewed yet: they are published, each
+opening with a "Not yet reviewed by a clinician" notice, and are listed as "Not clinician reviewed". Nine 3D labs: the stride lab and warm-up studio (hand-built pages),
 and the Spring lab, Shoe cut-away, Oxygen journey, Muscle fibres, Strength library, Injury body map and Course fly-over
 (embedded in their topic pages).
 
@@ -31,7 +31,7 @@ npm ci
 npm run dev           # http://localhost:4321
 npm run build         # static site in dist/, the search index (dist/pagefind/), then a check that every internal
                       # link and #anchor resolves
-npm run build:review  # the same, plus the health pages still in clinician review (for the review preview)
+npm run build:review  # the same, and always with the health pages no clinician has cleared (see Clinician review)
 npm run preview       # serve dist/
 ```
 
@@ -110,7 +110,12 @@ A claim is only **Checked** when it carries `passage: { quote, where, limits, ch
 
 For health and safety content: say plainly when to stop and get checked, give numbers with their study size and limits, and say "a link, not proof" for associations. Pages end with "General information, not medical advice."
 
-**Clinician review.** A topic with `review: clinician` in its frontmatter is a draft until a clinician has checked it and `cleared: true` is set. Drafts are built only by `npm run build:review` (for the review preview), with a "Draft for clinician review" note. On the live site they are listed as "In clinician review", links to them (`<TopicLink>`) show as plain text, and their claims stay out of the evidence ledger.
+**Clinician review.** A topic with `review: clinician` in its frontmatter counts as not reviewed until a clinician has checked it and `cleared: true` is set. `PUBLISH_UNREVIEWED` in `src/data/site.js` decides what happens until then:
+
+- `true` (now): the page is published. It opens with a "Not yet reviewed by a clinician" notice, and the home page, section pages, lab cards and evidence ledger mark it as not clinician reviewed. Nothing on the site says a clinician has reviewed it.
+- `false`: the page is held back. It is built only by `npm run build:review` (for the review preview). On the live site it is listed as "In clinician review", links to it (`<TopicLink>`) show as plain text, and its claims stay out of the evidence ledger.
+
+Setting `cleared: true` on a page removes its notice and its "not clinician reviewed" marks. Only do that once a clinician has signed the page off.
 
 ### Add a claim
 
@@ -124,7 +129,7 @@ For health and safety content: say plainly when to stop and get checked, give nu
 2. Create `src/content/topics/<section>/<slug>.mdx` with the frontmatter in `src/content.config.js`. Health pages get
    `review: clinician`.
 3. Write the article. Link other topics with `<TopicLink to="<section>/<slug>" />`, never a bare path, so links to
-   unwritten or unreviewed pages stay plain text. Put asides in `<Box kind="care|try|model|note">`.
+   unwritten or held-back pages stay plain text. Put asides in `<Box kind="care|try|model|note">`.
 4. Add its claims to `src/data/claims/<section>.js` and cite them. The page's ledger is added automatically.
 
 Smaller 3D labs sit at the top of a topic page: put the component in `src/components/labs/`, add it to `LAB` in `src/pages/[section]/[topic].astro`, set `kind: lab` and `lab: <name>` in the page's frontmatter (the names are listed in `src/content.config.js`), and give its entry in `LABS` (`src/data/site.js`) a `topic`. Its claims go in the section's claims file like any other.

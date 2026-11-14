@@ -1,11 +1,45 @@
 ---
 import Base from '../layouts/Base.astro';
 import Grades from '../components/Grades.astro';
-import { PATHS, ROADMAP, BASE, href } from '../data/site.js';
-import { atlas } from '../lib/atlas.js';
+import { PATHS, ROADMAP, BASE, PREVIEW, href } from '../data/site.js';
+import { atlas, SHOW_DRAFTS } from '../lib/atlas.js';
 
 const { sections, topics, labs } = await atlas();
-const openCount = topics.filter(t => t.state === 'open').length;
+const count = state => topics.filter(t => t.state === state).length;
+const reviewCount = count('review'), comingCount = count('coming');
+// Health pages no clinician has cleared are either published with a notice (SHOW_DRAFTS) or held back.
+const readableCount = topics.filter(t => t.href).length;
+const are = n => n === 1 ? 'is' : 'are';
+// The intro's sentences after the open count: what has not been reviewed, and what is not written.
+const notes = [
+  reviewCount > 0 && (SHOW_DRAFTS
+    ? `${reviewCount} of them ${are(reviewCount)} health pages that no clinician has reviewed yet, and each says so at the top.`
+    : `${reviewCount} ${are(reviewCount)} written and waiting for a clinician’s review.`),
+  comingCount > 0 && `${comingCount} ${are(comingCount)} still to come.`,
+].filter(Boolean).join(' ');
+/** A section's count line: the topics with a page, how many of its health pages are unreviewed, and what is to come. */
+const tally = s => s.open === s.topics.length ? `All ${s.open} open` : [
+  s.readable > 0 && `${s.readable} open`,
+  s.review > 0 && (!SHOW_DRAFTS ? `${s.review} in review` : s.review === s.readable ? 'unreviewed' : `${s.review} unreviewed`),
+  s.coming > 0 && `${s.coming} to come`,
+].filter(Boolean).join(' · ');
+const TOPIC_TAG = { review: SHOW_DRAFTS ? 'Unreviewed' : 'In review', coming: 'To come' };
+/** How far a roadmap step has got, read from the state of its sections' topics. */
+const progress = r => {
+  const ts = r.sections.flatMap(n => sections[n - 1].topics);
+  const n = state => ts.filter(t => t.state === state).length;
+  const review = n('review'), coming = n('coming');
+  const parts = [];
+  if (ts.length === 0) parts.push('Done');
+  else if (!ts.some(t => t.href) && coming === 0) parts.push('Written, in clinician review');
+  else {
+    if (ts.some(t => t.href)) parts.push('Open');
+    if (review > 0) parts.push(SHOW_DRAFTS ? `${review} unreviewed` : `${review} in review`);
+    if (coming > 0) parts.push(`${coming} to come`);
+  }
+  if (r.launch) parts.push(PREVIEW ? 'launch to come' : 'launched');
+  return parts.join(' · ');
+};
 
 const ROUTE_MARKS = ['var(--accent)', 'var(--m-work)', 'var(--g-model)', 'var(--m-stretch)'];
 const pad = n => String(n).padStart(2, '0');
@@ -48,16 +82,17 @@ const pad = n => String(n).padStart(2, '0');
   </section>
 
   <section class="wrap band" id="atlas">
-    <div class="band-head"><h2 class="h2">The atlas</h2><p class="sub">Eleven sections and {topics.length} topics, from first steps to deep science. {openCount} topics are open in this preview; the rest are being written.</p></div>
+    <div class="band-head"><h2 class="h2">The atlas</h2><p class="sub">Eleven sections and {topics.length} topics, from first steps to deep science. {readableCount} {are(readableCount)} open in this preview.{notes && ` ${notes}`}</p></div>
     <div class="plates">
       {sections.map(s => {
         const shown = s.topics.slice(0, 5), more = s.topics.slice(5);
-        const item = t => <li class:list={[`tp-${t.state}`]}>{t.href ? <a href={href(t.href)}>{t.title}</a> : t.title}</li>;
+        const tag = t => TOPIC_TAG[t.state] && <span class="tp-tag">{TOPIC_TAG[t.state]}</span>;
+        const item = t => <li class:list={[`tp-${t.state}`, { 'tp-off': !t.href }]}>{t.href ? <a href={href(t.href)}><span class="tp-t">{t.title}</span>{tag(t)}</a> : <Fragment><span class="tp-t">{t.title}</span>{tag(t)}</Fragment>}</li>;
         return (
-          <article class:list={['sec-plate', { 'is-live': s.open > 0 }]} id={`sec-${s.n}`}>
+          <article class:list={['sec-plate', { 'is-live': s.readable > 0 }]} id={`sec-${s.n}`}>
             <div class="sp-top">
-              <span class="sp-no">Section {pad(s.n)}</span>
-              <span class="sp-state">{s.open > 0 ? `${s.open} of ${s.topics.length} open` : 'Being written'}</span>
+              <span class="sp-no">Section {pad(s.n)}</span><span class="vh">: </span>
+              <span class="sp-state">{tally(s)}</span>
             </div>
             <div class="sp-body">
               <h3><span class="vh">Section {s.n}: </span><a href={href(`/${s.slug}/`)}>{s.title}</a></h3>
@@ -68,7 +103,7 @@ const pad = n => String(n).padStart(2, '0');
               )}
             </div>
             <div class="sp-foot">
-              <a class="live-link" href={href(`/${s.slug}/`)}>{s.open > 0 ? 'Open the section' : 'See what is coming'}</a>
+              <a class="live-link" href={href(`/${s.slug}/`)}>{s.readable > 0 ? 'Open the section' : s.review > 0 ? 'See what is in review' : 'See what is coming'}</a>
             </div>
           </article>
         );
@@ -76,7 +111,7 @@ const pad = n => String(n).padStart(2, '0');
       <article class="finish">
         <p class="label">Finish line</p>
         <h3>How the atlas gets built</h3>
-        <ol>{ROADMAP.map((r, i) => <li><span class="mono">{i}</span>{r}</li>)}</ol>
+        <ol>{ROADMAP.map((r, i) => <li><span class="mono">{i}</span><span>{r.step}<span class="vh">: </span><span class="rm-state">{progress(r)}</span></span></li>)}</ol>
       </article>
     </div>
   </section>
@@ -87,7 +122,7 @@ const pad = n => String(n).padStart(2, '0');
       {labs.map(l => (
         <li class:list={['lab', { 'is-live': l.href }]}>
           {l.href
-            ? <a href={href(l.href)}><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Open</span></a>
+            ? <a href={href(l.href)}><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">{l.review ? 'Open · not clinician reviewed' : 'Open'}</span></a>
             : <div><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">{l.review ? 'In clinician review' : 'Planned'}</span></div>}
         </li>
       ))}
@@ -97,7 +132,9 @@ const pad = n => String(n).padStart(2, '0');
   <section class="wrap band">
     <div class="band-head"><h2 class="h2">How every fact is graded</h2><p class="sub">Each claim links to its source in the evidence ledger.</p></div>
     <Grades />
-    <p class="fine">Pages on injuries and health will be reviewed by a clinician before they go live. Any single red-flag symptom means seek care now.</p>
+    <p class="fine">{SHOW_DRAFTS && reviewCount > 0
+      ? 'The health pages have not been reviewed by a clinician yet, and each one says so at the top. Any single red-flag symptom means seek care now.'
+      : 'Pages on injuries and health will be reviewed by a clinician before they go live. Any single red-flag symptom means seek care now.'}</p>
   </section>
 </Base>
 

@@ -20,8 +20,9 @@ const topics = defineCollection({
     /** A 3D lab shown above the article (see LAB in src/pages/[section]/[topic].astro). */
     lab: z.enum(['spring', 'oxygen', 'fibres', 'shoe', 'strength', 'bodymap', 'course']).optional(),
     /**
-     * Health pages need a clinician's review before they go live. Until `cleared` is true they are drafts:
-     * built only when ATLAS_DRAFTS=1 (the preview for review), and listed elsewhere as "In review".
+     * Health pages need a clinician's review. Until `cleared` is true they count as not reviewed: they open with a
+     * notice saying so, and are listed as "Not clinician reviewed". With PUBLISH_UNREVIEWED off in src/data/site.js
+     * they are held back instead, and built only when ATLAS_DRAFTS=1 (the preview for review).
      */
     review: z.enum(['clinician']).optional(),
     cleared: z.boolean().default(false),

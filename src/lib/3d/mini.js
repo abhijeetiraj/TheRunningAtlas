@@ -99,7 +99,8 @@ export function createMiniStage(opts = {}) {
   let driver = null, last = performance.now();
   function frame(now) {
     requestAnimationFrame(frame);
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    // The first frame's timestamp can be earlier than `last` (the frame began before this script ran), so never step back.
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
     if (!host || !onScreen || document.hidden) return;
     if (tween) {
       tween.u = Math.min(1, tween.u + dt / 0.9);
