@@ -180,13 +180,18 @@ export const LABS = [
   { name: 'Course fly-over', what: 'Fly over a race course with its hills, and see a pacing plan that keeps your effort steady.', topic: 'racing/pacing', section: 9 },
 ];
 
+/**
+ * The build order. `sections` are the sections a step delivers; the home page reads how far each step has got from
+ * the pages that exist, so this list never needs its progress edited by hand. `launch` marks the step that ends
+ * with the public launch (PREVIEW set to false).
+ */
 export const ROADMAP = [
-  'This preview and the plan',
-  'Start running, tools, real hosting',
-  'How running works, the engine',
-  'Training, strength, fuel',
-  'Injuries and health, after clinician review',
-  'Racing, then public launch',
+  { step: 'This preview and the plan', sections: [] },
+  { step: 'Start running, tools, real hosting', sections: [1, 10] },
+  { step: 'How running works, the engine', sections: [2, 3] },
+  { step: 'Training, strength, fuel', sections: [4, 5, 6] },
+  { step: 'Injuries and health, after clinician review', sections: [7, 8] },
+  { step: 'Racing, then public launch', sections: [9], launch: true },
 ];
 
 /** Main navigation. */

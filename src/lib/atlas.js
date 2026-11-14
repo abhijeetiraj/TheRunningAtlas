@@ -15,6 +15,7 @@ let cache = null;
  *   state: 'open' (a page anyone can read), 'review' (written, waiting for a clinician) or 'coming' (not written yet)
  *   href:  the page's path when it is built (always for open topics; for review topics only in the review preview)
  *   entry: the content entry, for topic pages
+ * Each section carries how many of its topics are in each state: open, review and coming.
  */
 export async function atlas() {
   if (cache) return cache;
@@ -38,8 +39,8 @@ export async function atlas() {
         href: !draft || SHOW_DRAFTS ? `/${id}/` : null,
       };
     });
-    const open = topics.filter(t => t.state === 'open').length;
-    return { ...s, topics, open };
+    const count = state => topics.filter(t => t.state === state).length;
+    return { ...s, topics, open: count('open'), review: count('review'), coming: count('coming') };
   });
   for (const e of entries) {
     if (!known.has(e.id)) throw new Error(`src/content/topics/${e.id}.mdx is not listed in SECTIONS in src/data/site.js`);

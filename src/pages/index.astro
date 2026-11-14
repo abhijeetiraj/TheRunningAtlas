@@ -1,11 +1,40 @@
 ---
 import Base from '../layouts/Base.astro';
 import Grades from '../components/Grades.astro';
-import { PATHS, ROADMAP, BASE, href } from '../data/site.js';
+import { PATHS, ROADMAP, BASE, PREVIEW, href } from '../data/site.js';
 import { atlas } from '../lib/atlas.js';
 
 const { sections, topics, labs } = await atlas();
-const openCount = topics.filter(t => t.state === 'open').length;
+const count = state => topics.filter(t => t.state === state).length;
+const openCount = count('open'), reviewCount = count('review'), comingCount = count('coming');
+// What is not open yet, said exactly: written and waiting for a clinician, or not written.
+const waiting = [
+  reviewCount > 0 && `${reviewCount} ${reviewCount > 1 ? 'are' : 'is'} written and waiting for a clinician’s review`,
+  comingCount > 0 && `${comingCount} ${comingCount > 1 ? 'are' : 'is'} still to come`,
+].filter(Boolean).join(', and ');
+/** A section's count line. Its parts always add up to the section's topics. */
+const tally = s => s.open === s.topics.length ? `All ${s.open} open` : [
+  s.open > 0 && `${s.open} open`,
+  s.review > 0 && `${s.review} in review`,
+  s.coming > 0 && `${s.coming} to come`,
+].filter(Boolean).join(' · ');
+const TOPIC_TAG = { review: 'In review', coming: 'To come' };
+/** How far a roadmap step has got, read from the state of its sections' topics. */
+const progress = r => {
+  const ts = r.sections.flatMap(n => sections[n - 1].topics);
+  const n = state => ts.filter(t => t.state === state).length;
+  const open = n('open'), review = n('review'), coming = n('coming');
+  const parts = [];
+  if (ts.length === 0) parts.push('Done');
+  else if (open === 0 && coming === 0) parts.push('Written, in clinician review');
+  else {
+    if (open > 0) parts.push('Open');
+    if (review > 0) parts.push(`${review} in review`);
+    if (coming > 0) parts.push(`${coming} to come`);
+  }
+  if (r.launch) parts.push(PREVIEW ? 'launch to come' : 'launched');
+  return parts.join(' · ');
+};
 
 const ROUTE_MARKS = ['var(--accent)', 'var(--m-work)', 'var(--g-model)', 'var(--m-stretch)'];
 const pad = n => String(n).padStart(2, '0');
@@ -48,16 +77,16 @@ const pad = n => String(n).padStart(2, '0');
   </section>
 
   <section class="wrap band" id="atlas">
-    <div class="band-head"><h2 class="h2">The atlas</h2><p class="sub">Eleven sections and {topics.length} topics, from first steps to deep science. {openCount} topics are open in this preview; the rest are being written.</p></div>
+    <div class="band-head"><h2 class="h2">The atlas</h2><p class="sub">Eleven sections and {topics.length} topics, from first steps to deep science. {openCount} {openCount === 1 ? 'is' : 'are'} open in this preview{waiting ? `. ${waiting.charAt(0).toUpperCase()}${waiting.slice(1)}.` : '.'}</p></div>
     <div class="plates">
       {sections.map(s => {
         const shown = s.topics.slice(0, 5), more = s.topics.slice(5);
-        const item = t => <li class:list={[`tp-${t.state}`]}>{t.href ? <a href={href(t.href)}>{t.title}</a> : t.title}</li>;
+        const item = t => <li class:list={[`tp-${t.state}`]}>{t.href ? <a href={href(t.href)}>{t.title}</a> : <span>{t.title}</span>}{!t.href && TOPIC_TAG[t.state] && <span class="tp-tag">{TOPIC_TAG[t.state]}</span>}</li>;
         return (
           <article class:list={['sec-plate', { 'is-live': s.open > 0 }]} id={`sec-${s.n}`}>
             <div class="sp-top">
-              <span class="sp-no">Section {pad(s.n)}</span>
-              <span class="sp-state">{s.open > 0 ? `${s.open} of ${s.topics.length} open` : 'Being written'}</span>
+              <span class="sp-no">Section {pad(s.n)}</span><span class="vh">: </span>
+              <span class="sp-state">{tally(s)}</span>
             </div>
             <div class="sp-body">
               <h3><span class="vh">Section {s.n}: </span><a href={href(`/${s.slug}/`)}>{s.title}</a></h3>
@@ -68,7 +97,7 @@ const pad = n => String(n).padStart(2, '0');
               )}
             </div>
             <div class="sp-foot">
-              <a class="live-link" href={href(`/${s.slug}/`)}>{s.open > 0 ? 'Open the section' : 'See what is coming'}</a>
+              <a class="live-link" href={href(`/${s.slug}/`)}>{s.open > 0 ? 'Open the section' : s.review > 0 ? 'See what is in review' : 'See what is coming'}</a>
             </div>
           </article>
         );
@@ -76,7 +105,7 @@ const pad = n => String(n).padStart(2, '0');
       <article class="finish">
         <p class="label">Finish line</p>
         <h3>How the atlas gets built</h3>
-        <ol>{ROADMAP.map((r, i) => <li><span class="mono">{i}</span>{r}</li>)}</ol>
+        <ol>{ROADMAP.map((r, i) => <li><span class="mono">{i}</span><span>{r.step}<span class="vh">: </span><span class="rm-state">{progress(r)}</span></span></li>)}</ol>
       </article>
     </div>
   </section>

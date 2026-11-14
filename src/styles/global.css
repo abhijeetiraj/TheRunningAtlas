@@ -196,7 +196,7 @@ h1.display { font-size: clamp(54px, 7.4vw, 104px); }
 .plates { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; }
 .sec-plate { display: flex; flex-direction: column; min-width: 0; border-radius: 16px; border: 1px solid var(--line); background: var(--card); overflow: hidden; }
 .sec-plate.is-live { border-color: var(--line-strong); }
-.sp-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 14px 16px 0; }
+.sp-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 8px; padding: 14px 16px 0; }
 .sp-no { font: 500 10.5px/1 var(--f-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); }
 .sp-state { display: inline-flex; align-items: center; gap: 6px; font: 500 10.5px/1 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
 .sp-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid currentColor; }
@@ -218,6 +218,7 @@ h1.display { font-size: clamp(54px, 7.4vw, 104px); }
 .finish ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 15px; color: var(--ink-2); }
 .finish li { display: grid; grid-template-columns: 26px 1fr; gap: 6px; }
 .finish li .mono { color: var(--ink-3); }
+.rm-state { display: block; margin-top: 2px; font: 500 10px/1.45 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
 .flash, :target.sec-plate { animation: flash 1.6s ease-out; }
 @keyframes flash { 0% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 3px transparent; } }
 
@@ -392,7 +393,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 8px 0 0;
 .topics a { text-decoration: none; color: var(--ink); display: flex; justify-content: space-between; gap: 8px; }
 .topics a::after { content: "→"; color: var(--accent); }
 .topics a:hover { color: var(--accent); }
-.topics .tp-coming, .topics .tp-review { color: var(--ink-2); }
+.topics .tp-coming, .topics .tp-review { color: var(--ink-2); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tp-tag { flex: none; font: 500 10px/1.45 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
 .sec-plate .sp-foot { display: grid; gap: 6px; }
 .sec-plate:not(.is-live) .live-link { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
 .sec-plate:not(.is-live) .live-link:hover { background: var(--hover); color: var(--ink); }
