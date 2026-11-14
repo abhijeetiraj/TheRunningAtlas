@@ -1,10 +1,13 @@
 // The atlas as built: the site map from src/data/site.js joined with the topic pages that exist.
 // Use it from page frontmatter (it reads the content collection, so it runs at build time only).
 import { getCollection } from 'astro:content';
-import { SECTIONS, LABS } from '../data/site.js';
+import { SECTIONS, LABS, PUBLISH_UNREVIEWED } from '../data/site.js';
 
-/** Drafts (health pages awaiting clinician review) are built only for the review preview. */
-export const SHOW_DRAFTS = process.env.ATLAS_DRAFTS === '1';
+/**
+ * Whether health pages that no clinician has cleared yet get a page in this build. They do when the site publishes
+ * them with a notice (PUBLISH_UNREVIEWED in src/data/site.js), and always in the review preview (ATLAS_DRAFTS=1).
+ */
+export const SHOW_DRAFTS = PUBLISH_UNREVIEWED || process.env.ATLAS_DRAFTS === '1';
 
 export const isDraft = entry => entry.data.review === 'clinician' && !entry.data.cleared;
 
@@ -12,10 +15,12 @@ let cache = null;
 
 /**
  * Every section with its topics resolved. Each topic gets:
- *   state: 'open' (a page anyone can read), 'review' (written, waiting for a clinician) or 'coming' (not written yet)
- *   href:  the page's path when it is built (always for open topics; for review topics only in the review preview)
+ *   state: 'open' (a page anyone can read), 'review' (a health page no clinician has cleared yet) or 'coming'
+ *          (not written yet)
+ *   href:  the page's path when it is built (always for open topics; for review topics when SHOW_DRAFTS is set)
  *   entry: the content entry, for topic pages
- * Each section carries how many of its topics are in each state: open, review and coming.
+ * Each section carries how many of its topics are in each state (open, review and coming), and `readable`, how many
+ * have a page in this build.
  */
 export async function atlas() {
   if (cache) return cache;
@@ -40,18 +45,18 @@ export async function atlas() {
       };
     });
     const count = state => topics.filter(t => t.state === state).length;
-    return { ...s, topics, open: count('open'), review: count('review'), coming: count('coming') };
+    return { ...s, topics, open: count('open'), review: count('review'), coming: count('coming'), readable: topics.filter(t => t.href).length };
   });
   for (const e of entries) {
     if (!known.has(e.id)) throw new Error(`src/content/topics/${e.id}.mdx is not listed in SECTIONS in src/data/site.js`);
   }
   const topics = sections.flatMap(s => s.topics);
-  // a lab on a topic page opens when that page is built
+  // a lab on a topic page opens when that page is built; `review` marks a lab whose page no clinician has cleared
   const labs = LABS.map(l => {
     if (!l.topic) return l;
     const t = topics.find(x => x.id === l.topic);
     if (!t) throw new Error(`Lab "${l.name}": no topic ${l.topic} in SECTIONS`);
-    return { ...l, href: t.href ? `${t.href}#lab` : null, review: !t.href && t.state === 'review' };
+    return { ...l, href: t.href ? `${t.href}#lab` : null, review: t.state === 'review' };
   });
   for (const s of sections) s.labs = labs.filter(l => l.section === s.n);
   cache = { sections, topics, labs };

@@ -28,7 +28,7 @@ const t = s.topics.find(x => x.id === id);
 const d = t.entry.data;
 const { Content, headings } = await render(t.entry);
 const claims = claimsFor(id);
-const draft = t.state === 'review';
+const unreviewed = t.state === 'review';
 const toc = headings.filter(h => h.depth === 2);
 const linked = s.topics.filter(x => x.href);
 const at = linked.indexOf(t);
@@ -47,8 +47,8 @@ const fmtDate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'lon
     <p class="meta"><span>{KIND[d.kind]}</span><span>About {d.read} min read</span>{claims.length > 0 && <span>{claims.length} {claims.length === 1 ? 'claim' : 'claims'} graded</span>}<span>Updated {fmtDate(d.updated)}</span></p>
   </header>
 
-  {draft && (
-    <div class="wrap"><p class="draft-note" role="note"><strong>Draft for clinician review.</strong> This page is written but has not been checked by a clinician yet, so it is not on the live site. It shows here only so it can be reviewed.</p></div>
+  {unreviewed && (
+    <div class="wrap"><p class="draft-note" role="note" data-pagefind-ignore><strong>Not yet reviewed by a clinician.</strong> This page is general information, written from the sources in <a href="#evidence">its evidence ledger</a>. No doctor or physiotherapist has checked it yet, so don’t rely on it to decide whether you need care. If a symptom worries you, get it checked. Chest pain, collapse, confusion or a seizure means call emergency services.</p></div>
   )}
 
   <div class="wrap">

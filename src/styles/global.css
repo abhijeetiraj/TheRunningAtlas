@@ -390,11 +390,12 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 8px 0 0;
 /* ---------------------------------------------------------------- home plates: topic links */
 .sec-plate h3 a { text-decoration: none; }
 .sec-plate h3 a:hover { color: var(--accent); }
-.topics a { text-decoration: none; color: var(--ink); display: flex; justify-content: space-between; gap: 8px; }
+.topics a { text-decoration: none; color: var(--ink); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .topics a::after { content: "→"; color: var(--accent); }
 .topics a:hover { color: var(--accent); }
-.topics .tp-coming, .topics .tp-review { color: var(--ink-2); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.tp-tag { flex: none; font: 500 10px/1.45 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+.topics .tp-off { color: var(--ink-2); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tp-t { flex: 1; min-width: 0; }
+.tp-tag { flex: none; align-self: baseline; font: 500 10px/1.45 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
 .sec-plate .sp-foot { display: grid; gap: 6px; }
 .sec-plate:not(.is-live) .live-link { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
 .sec-plate:not(.is-live) .live-link:hover { background: var(--hover); color: var(--ink); }

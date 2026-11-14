@@ -4,6 +4,13 @@
 /** While true, every page carries a "Preview" badge and asks search engines not to index it. */
 export const PREVIEW = true;
 
+/**
+ * Health pages carry `review: clinician` and count as reviewed only once a clinician has signed them off
+ * (`cleared: true`). While this is true, health pages that are not cleared yet are published anyway, and each one
+ * opens with a notice that no clinician has reviewed it. Set it to false to hold them back until they are cleared.
+ */
+export const PUBLISH_UNREVIEWED = true;
+
 export const SITE = {
   name: 'The Running Atlas',
   tagline: 'Every stride, explained.',
@@ -104,7 +111,7 @@ export const SECTIONS = [
       { slug: 'caffeine-supplements', title: 'Caffeine and supplements' },
     ] },
   { n: 7, slug: 'injuries-health', title: 'Injuries and health', who: 'Everyone',
-    intro: 'Common running injuries, when to stop and get checked, and the red flags that need care now. Reviewed by a clinician before it goes live.',
+    intro: 'Common running injuries, when to stop and get checked, and the red flags that need care now. Not yet reviewed by a clinician.',
     topics: [
       { slug: 'soreness-or-pain', title: 'Soreness or pain?' },
       { slug: 'runners-knee', title: "Runner's knee" },
@@ -190,7 +197,7 @@ export const ROADMAP = [
   { step: 'Start running, tools, real hosting', sections: [1, 10] },
   { step: 'How running works, the engine', sections: [2, 3] },
   { step: 'Training, strength, fuel', sections: [4, 5, 6] },
-  { step: 'Injuries and health, after clinician review', sections: [7, 8] },
+  { step: 'Injuries and health, then clinician review', sections: [7, 8] },
   { step: 'Racing, then public launch', sections: [9], launch: true },
 ];
 

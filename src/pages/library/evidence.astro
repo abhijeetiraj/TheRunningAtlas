@@ -6,8 +6,8 @@ import { CLAIMS, claimsFor } from '../../data/claims.js';
 import { href, SECTIONS } from '../../data/site.js';
 import { ledgerPages, SHOW_DRAFTS } from '../../lib/atlas.js';
 
-// Group the claims by page, in the order the pages appear in the atlas. Claims on pages that are not built (drafts
-// outside the review preview) are left out, since their page is not on the site.
+// Group the claims by page, in the order the pages appear in the atlas. Claims on pages that are not built (health
+// pages held back for clinician review) are left out, since their page is not on the site.
 const pages = await ledgerPages();
 const groups = Object.entries(pages)
   .map(([key, p]) => ({ key, ...p, claims: claimsFor(key) }))
@@ -36,11 +36,11 @@ for (const c of shown) counts[c.grade] = (counts[c.grade] || 0) + 1;
   <section class="wrap band">
     {groups.map(g => (
       <div class="ledger-group">
-        <div class="band-head"><h2 class="h2"><a href={href(g.href)}>{g.title}</a></h2><p class="sub">{g.claims.length} claims{g.state === 'review' ? ' · page in clinician review' : ''}</p></div>
+        <div class="band-head"><h2 class="h2"><a href={href(g.href)}>{g.title}</a></h2><p class="sub">{g.claims.length} claims{g.state === 'review' ? ' · page not yet reviewed by a clinician' : ''}</p></div>
         <Ledger claims={g.claims} />
       </div>
     ))}
-    {SHOW_DRAFTS && <p class="fine">This preview includes pages still in clinician review.</p>}
+    {SHOW_DRAFTS && groups.some(g => g.state === 'review') && <p class="fine">The ledger includes health pages that no clinician has reviewed yet. Each of those pages says so at the top.</p>}
     <p class="fine">General information, not medical advice.</p>
   </section>
 </Base>

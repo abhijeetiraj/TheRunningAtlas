@@ -14,11 +14,13 @@ const i = sections.indexOf(s);
 const prev = sections[i - 1], next = sections[i + 1];
 const pad = n => String(n).padStart(2, '0');
 const KIND = { tool: 'Tool', lab: '3D lab' };
-const STATE = { open: 'Open', review: 'In clinician review', coming: 'Coming' };
+// Health pages no clinician has cleared are either published with a notice (SHOW_DRAFTS) or held back.
+const REVIEW = SHOW_DRAFTS ? 'Not clinician reviewed' : 'In clinician review';
+const STATE = { open: 'Open', review: REVIEW, coming: 'Coming' };
 const { review, coming } = s;
 // What "not open" means in this section, said exactly.
 const rest = [
-  review > 0 && 'pages in clinician review are written and waiting for that check',
+  review > 0 && (SHOW_DRAFTS ? 'pages marked “Not clinician reviewed” can be read too, and say so at the top' : 'pages in clinician review are written and waiting for that check'),
   coming > 0 && `${coming} ${coming > 1 ? 'are' : 'is'} still to come`,
 ].filter(Boolean).join(', and ');
 ---
@@ -28,7 +30,7 @@ const rest = [
     <p class="eyebrow">Section {pad(s.n)} · For {s.who.toLowerCase()}</p>
     <h1 class="display page-title">{s.title}</h1>
     <p class="lede">{s.intro}</p>
-    <p class="meta"><span>{s.open} of {s.topics.length} topics open</span>{review > 0 && <span>{review} in clinician review</span>}{coming > 0 && <span>{coming} to come</span>}{s.labs.length > 0 && <span>{s.labs.length} 3D lab{s.labs.length > 1 ? 's' : ''}</span>}</p>
+    <p class="meta"><span>{s.readable} of {s.topics.length} topics open</span>{review > 0 && <span>{review} {SHOW_DRAFTS ? 'not clinician reviewed' : 'in clinician review'}</span>}{coming > 0 && <span>{coming} to come</span>}{s.labs.length > 0 && <span>{s.labs.length} 3D lab{s.labs.length > 1 ? 's' : ''}</span>}</p>
   </header>
 
   <section class="wrap band band-tight" aria-labelledby="topics-h">
@@ -54,7 +56,9 @@ const rest = [
         </li>
       ))}
     </ol>
-    {review > 0 && <p class="fine">Pages marked “In clinician review” are written and waiting for a clinician to check them{SHOW_DRAFTS ? '. This preview shows them so they can be reviewed.' : ' before they go live.'}</p>}
+    {review > 0 && <p class="fine">{SHOW_DRAFTS
+      ? 'Pages marked “Not clinician reviewed” are published before a clinician has checked them. Each one says so at the top. Any single red-flag symptom means seek care now.'
+      : 'Pages marked “In clinician review” are written and waiting for a clinician to check them before they go live.'}</p>}
   </section>
 
   {s.labs.length > 0 && (
@@ -64,7 +68,7 @@ const rest = [
         {s.labs.map(l => (
           <li class:list={['lab', { 'is-live': l.href }]}>
             {l.href
-              ? <a href={href(l.href)}><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">Open</span></a>
+              ? <a href={href(l.href)}><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">{l.review ? 'Open · not clinician reviewed' : 'Open'}</span></a>
               : <div><span class="lab-name">{l.name}</span><span class="lab-what">{l.what}</span><span class="lab-state">{l.review ? 'In clinician review' : 'Planned'}</span></div>}
           </li>
         ))}
